@@ -122,7 +122,7 @@ For local development, use docker-compose:
 
 ```bash
 cd docker
-docker-compose up -d
+docker compose up -d
 ```
 
 This starts PostgreSQL locally. Set environment variables in `.env` file (copy from `app/example.env`).
