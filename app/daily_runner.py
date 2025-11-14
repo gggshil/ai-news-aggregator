@@ -87,7 +87,10 @@ def run_daily_pipeline(hours: int = 24, top_n: int = 10) -> dict:
         email_result = send_digest_email(hours=hours, top_n=top_n)
         results["email"] = email_result
 
-        if email_result["success"]:
+        if email_result.get("skipped"):
+            logger.info(f"✓ {email_result.get('message', 'No new digests to send')}")
+            results["success"] = True
+        elif email_result["success"]:
             logger.info(
                 f"✓ Email sent successfully with {email_result['articles_count']} articles"
             )
@@ -113,7 +116,13 @@ def run_daily_pipeline(hours: int = 24, top_n: int = 10) -> dict:
     logger.info(f"Scraped: {results['scraping']}")
     logger.info(f"Processed: {results['processing']}")
     logger.info(f"Digests: {results['digests']}")
-    logger.info(f"Email: {'Sent' if results['success'] else 'Failed'}")
+    if results.get('email', {}).get('skipped'):
+        email_status = "Skipped"
+    elif results['success']:
+        email_status = "Sent"
+    else:
+        email_status = "Failed"
+    logger.info(f"Email: {email_status}")
     logger.info("=" * 60)
 
     return results
