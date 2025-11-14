@@ -14,23 +14,22 @@ This project aggregates AI news from multiple sources:
 ## Architecture
 
 ```mermaid
-graph TD
-    A[Sources<br/>YouTube Channels<br/>RSS Feeds] --> B[Scrapers<br/>BaseScraper<br/>RSS Scrapers<br/>YouTube Scraper]
-    B --> C[Database<br/>PostgreSQL<br/>Articles & Videos]
-    C --> D[Processors<br/>Markdown Conversion<br/>Transcript Fetching]
-    D --> E[Digests<br/>LLM Summary Generation]
-    E --> F[Curator<br/>LLM Ranking<br/>Relevance Scoring]
-    F --> G[Email<br/>Personalized Digest<br/>HTML Formatting]
-    G --> H[Delivery<br/>Gmail SMTP]
+graph LR
+    A[Sources<br/>YouTube<br/>RSS Feeds] --> B[Scrapers<br/>BaseScraper<br/>Registry Pattern]
+    B --> C[(Database<br/>PostgreSQL)]
+    C --> D[Processors<br/>Markdown<br/>Transcripts<br/>Digests]
+    D --> C
+    C --> E[Curator<br/>LLM Ranking]
+    E --> F[Email<br/>Personalized Digest]
+    F --> G[Delivery<br/>Gmail SMTP]
     
     style A fill:#e1f5ff
     style B fill:#fff4e1
-    style C fill:#e8f5e9
+    style C fill:#e8f5e9,stroke:#4caf50,stroke-width:3px
     style D fill:#fff4e1
     style E fill:#f3e5f5
     style F fill:#f3e5f5
     style G fill:#ffe1f5
-    style H fill:#ffe1f5
 ```
 
 ## How It Works
@@ -172,12 +171,17 @@ class CustomScraper:
    MY_EMAIL=your_email@gmail.com
    APP_PASSWORD=your_gmail_app_password
    DATABASE_URL=postgresql://user:pass@host:port/db
-   ENVIRONMENT=LOCAL
+   ENVIRONMENT=LOCAL  # Optional: auto-detected from DATABASE_URL if contains "render.com"
    ```
 
 4. Initialize database:
    ```bash
-   python -m app.database.create_tables
+   uv run python -m app.database.create_tables
+   ```
+   
+   Or check database connection:
+   ```bash
+   uv run python -m app.database.check_connection
    ```
 
 5. Configure YouTube channels in `app/config.py`
@@ -188,24 +192,24 @@ class CustomScraper:
 
 **Full pipeline:**
 ```bash
-python main.py
+uv run main.py
 ```
 
 **Individual steps:**
 ```bash
 # Scraping
-python -m app.runner
+uv run python -m app.runner
 
 # Processing
-python -m app.services.process_anthropic
-python -m app.services.process_youtube
-python -m app.services.process_digest
+uv run python -m app.services.process_anthropic
+uv run python -m app.services.process_youtube
+uv run python -m app.services.process_digest
 
 # Curation
-python -m app.services.process_curator
+uv run python -m app.services.process_curator
 
 # Email
-python -m app.services.process_email
+uv run python -m app.services.process_email
 ```
 
 ## Deployment
@@ -216,7 +220,7 @@ The project is configured for deployment on Render.com:
 
 1. **Database**: PostgreSQL service (auto-configured)
 2. **Cron Job**: Scheduled daily execution via `render.yaml`
-3. **Environment**: Set `ENVIRONMENT=PRODUCTION` in Render dashboard
+3. **Environment**: Automatically detected as PRODUCTION when `DATABASE_URL` contains "render.com" (no manual setting needed)
 
 See `RENDER_SETUP.md` for detailed deployment instructions.
 
@@ -226,21 +230,6 @@ Build and run:
 ```bash
 docker build -t ai-news-aggregator .
 docker run --env-file .env ai-news-aggregator
-```
-
-## Database Migrations
-
-To add new columns or tables:
-
-1. Update models in `app/database/models.py`
-2. Run migration script:
-   ```bash
-   python -m app.database.migrate_add_sent_at  # Example
-   ```
-
-Check connection:
-```bash
-python -m app.database.check_connection
 ```
 
 ## Key Features
