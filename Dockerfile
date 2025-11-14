@@ -18,5 +18,5 @@ RUN uv pip install --system -r pyproject.toml
 
 COPY . .
 
-CMD ["python", "main.py"]
+CMD ["uv", "run", "main.py"]
 
