@@ -116,9 +116,9 @@ def run_daily_pipeline(hours: int = 24, top_n: int = 10) -> dict:
     logger.info(f"Scraped: {results['scraping']}")
     logger.info(f"Processed: {results['processing']}")
     logger.info(f"Digests: {results['digests']}")
-    if results.get('email', {}).get('skipped'):
+    if results.get("email", {}).get("skipped"):
         email_status = "Skipped"
-    elif results['success']:
+    elif results["success"]:
         email_status = "Sent"
     else:
         email_status = "Failed"

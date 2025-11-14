@@ -156,6 +156,7 @@ class CustomScraper:
 - PostgreSQL database
 - OpenAI API key
 - Gmail app password (for email sending)
+- Webshare proxy credentials (optional, for YouTube transcript fetching)
 
 ### Installation
 
@@ -172,7 +173,14 @@ class CustomScraper:
    APP_PASSWORD=your_gmail_app_password
    DATABASE_URL=postgresql://user:pass@host:port/db
    ENVIRONMENT=LOCAL  # Optional: auto-detected from DATABASE_URL if contains "render.com"
+   
+   # Optional: Webshare Proxy (for YouTube transcript fetching)
+   # Get credentials from https://www.webshare.io/
+   WEBSHARE_USERNAME=your_username
+   WEBSHARE_PASSWORD=your_password
    ```
+   
+   **Note**: Webshare proxy is optional. If not provided, YouTube transcript fetching will work without a proxy but may be rate-limited.
 
 4. Initialize database:
    ```bash
