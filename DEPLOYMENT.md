@@ -113,7 +113,7 @@ To change when the daily digest runs:
 ### Build Failures
 
 - Check Dockerfile syntax
-- Verify all dependencies in `requirements.txt`
+- Verify all dependencies in `pyproject.toml`
 - Review build logs for specific errors
 
 ## Local Development
