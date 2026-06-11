@@ -60,13 +60,20 @@ def get_database_info() -> dict:
 # Configure DB Engine and automatically create SQLite directories if needed
 db_url = get_database_url()
 if db_url.startswith("sqlite:///"):
+    # In Vercel (read‑only) environment we cannot write to SQLite files.
+    # If the environment is not explicitly LOCAL, raise an informative error.
+    if get_environment() != "LOCAL":
+        raise RuntimeError(
+            "SQLite database not supported on Vercel. "
+            "Ensure Postgres environment variables are set."
+        )
     db_path = db_url.replace("sqlite:///", "")
     db_dir = os.path.dirname(db_path)
     if db_dir and not os.path.exists(db_dir):
         try:
             os.makedirs(db_dir, exist_ok=True)
         except OSError as e:
-            print(f"Warning: Could not create SQLite directory ({e}). This is expected on read-only environments like Vercel.")
+            print(f"Warning: Could not create SQLite directory ({e}). This is expected on read‑only environments like Vercel.")
 
 connect_args = {"check_same_thread": False} if db_url.startswith("sqlite") else {}
 engine = create_engine(db_url, connect_args=connect_args)
