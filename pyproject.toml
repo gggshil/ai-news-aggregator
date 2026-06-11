@@ -21,3 +21,6 @@ dependencies = [
 dev = [
     "ipykernel>=7.1.0",
 ]
+
+[tool.vercel]
+entrypoint = "api.cron:handler"
