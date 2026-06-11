@@ -16,8 +16,7 @@ class BaseAgent(ABC):
             if not base_url:
                 base_url = "https://generativelanguage.googleapis.com/v1beta/openai/"
             if model.startswith("gpt-"):
-                model = "gemini-2.5-flash"
+                model = "gemini-2.5-flash-lite"
                 
         self.client = OpenAI(api_key=api_key, base_url=base_url)
         self.model = model
-
