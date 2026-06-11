@@ -61,7 +61,10 @@ if db_url.startswith("sqlite:///"):
     db_path = db_url.replace("sqlite:///", "")
     db_dir = os.path.dirname(db_path)
     if db_dir and not os.path.exists(db_dir):
-        os.makedirs(db_dir, exist_ok=True)
+        try:
+            os.makedirs(db_dir, exist_ok=True)
+        except OSError as e:
+            print(f"Warning: Could not create SQLite directory ({e}). This is expected on read-only environments like Vercel.")
 
 connect_args = {"check_same_thread": False} if db_url.startswith("sqlite") else {}
 engine = create_engine(db_url, connect_args=connect_args)
