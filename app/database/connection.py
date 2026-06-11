@@ -1,6 +1,6 @@
+
 import os
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -57,6 +57,8 @@ def get_database_info() -> dict:
     }
 
 
+from sqlalchemy.orm import sessionmaker, scoped_session
+
 # Configure DB Engine and automatically create SQLite directories if needed
 db_url = get_database_url()
 if db_url.startswith("sqlite:///"):
@@ -78,7 +80,8 @@ if db_url.startswith("sqlite:///"):
 connect_args = {"check_same_thread": False} if db_url.startswith("sqlite") else {}
 engine = create_engine(db_url, connect_args=connect_args)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+db_session = scoped_session(SessionLocal)
 
 
 def get_session():
-    return SessionLocal()
+    return db_session()
