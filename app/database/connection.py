@@ -11,7 +11,8 @@ def get_environment() -> str:
 
 
 def get_database_url() -> str:
-    database_url = os.getenv("DATABASE_URL")
+    # Support both DATABASE_URL and Vercel's POSTGRES_URL
+    database_url = os.getenv("DATABASE_URL") or os.getenv("POSTGRES_URL")
     if database_url:
         if database_url.startswith("postgres://"):
             database_url = database_url.replace("postgres://", "postgresql://", 1)
@@ -25,7 +26,8 @@ def get_database_url() -> str:
     password = os.getenv("POSTGRES_PASSWORD", "postgres")
     host = postgres_host
     port = os.getenv("POSTGRES_PORT", "5432")
-    db = os.getenv("POSTGRES_DB", "ai_news_aggregator")
+    # Support both POSTGRES_DB and Vercel's POSTGRES_DATABASE
+    db = os.getenv("POSTGRES_DB") or os.getenv("POSTGRES_DATABASE", "ai_news_aggregator")
     return f"postgresql://{user}:{password}@{host}:{port}/{db}"
 
 
