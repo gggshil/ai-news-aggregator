@@ -5,7 +5,9 @@ from app.daily_runner import run_daily_pipeline
 class handler(BaseHTTPRequestHandler):
     def do_GET(self):
         try:
+            import os
             print("Vercel Cron Triggered: Starting Daily Pipeline...")
+            print("Available environment variables:", sorted(list(os.environ.keys())))
             # Run the daily pipeline
             result = run_daily_pipeline(hours=24, top_n=10)
             
