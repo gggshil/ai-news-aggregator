@@ -85,6 +85,21 @@ def send_digest_email(hours: int = 24, top_n: int = 10) -> dict:
 
         subject = f"Daily AI News Digest - {result.introduction.greeting.split('for ')[-1] if 'for ' in result.introduction.greeting else 'Today'}"
 
+        from app.services.email import MY_EMAIL, APP_PASSWORD
+        if not MY_EMAIL or not APP_PASSWORD:
+            logger.warning("MY_EMAIL or APP_PASSWORD not configured. Printing digest to console and skipping email dispatch.")
+            print("\n================== COMPILED DAILY DIGEST ==================")
+            print(markdown_content)
+            print("===========================================================\n")
+            digest_ids = [article.digest_id for article in result.articles]
+            marked_count = repo.mark_digests_as_sent(digest_ids)
+            return {
+                "success": True,
+                "subject": subject,
+                "articles_count": len(result.articles),
+                "marked_as_sent": marked_count,
+            }
+
         send_email(subject=subject, body_text=markdown_content, body_html=html_content)
 
         digest_ids = [article.digest_id for article in result.articles]

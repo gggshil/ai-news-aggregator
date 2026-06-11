@@ -84,15 +84,17 @@ Top 10 ranked articles:
 Generate a greeting and introduction that previews these articles."""
 
         try:
-            response = self.client.responses.parse(
+            response = self.client.beta.chat.completions.parse(
                 model=self.model,
-                instructions=EMAIL_PROMPT,
+                messages=[
+                    {"role": "system", "content": EMAIL_PROMPT},
+                    {"role": "user", "content": user_prompt}
+                ],
                 temperature=0.7,
-                input=user_prompt,
-                text_format=EmailIntroduction
+                response_format=EmailIntroduction
             )
             
-            intro = response.output_parsed
+            intro = response.choices[0].message.parsed
             if not intro.greeting.startswith(f"Hey {self.user_profile['name']}"):
                 intro.greeting = f"Hey {self.user_profile['name']}, here is your daily digest of AI news for {current_date}."
             

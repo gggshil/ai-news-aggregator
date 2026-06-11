@@ -28,15 +28,17 @@ class DigestAgent(BaseAgent):
         try:
             user_prompt = f"Create a digest for this {article_type}: \n Title: {title} \n Content: {content[:8000]}"
 
-            response = self.client.responses.parse(
+            response = self.client.beta.chat.completions.parse(
                 model=self.model,
-                instructions=self.system_prompt,
+                messages=[
+                    {"role": "system", "content": self.system_prompt},
+                    {"role": "user", "content": user_prompt}
+                ],
                 temperature=0.7,
-                input=user_prompt,
-                text_format=DigestOutput
+                response_format=DigestOutput
             )
             
-            return response.output_parsed
+            return response.choices[0].message.parsed
         except Exception as e:
             print(f"Error generating digest: {e}")
             return None
