@@ -1,0 +1,44 @@
+name: Daily AI News Aggregator
+
+on:
+  schedule:
+    # Runs at 23:30 UTC every day, which is 05:00 AM IST (Indian Standard Time)
+    - cron: '30 23 * * *'
+  workflow_dispatch: # This allows you to manually trigger it by clicking a button in GitHub
+
+jobs:
+  run-pipeline:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # IMPORTANT: Caching the SQLite database ensures that you don't receive duplicate
+      # news every day. The database remembers what it has already sent.
+      - name: Cache SQLite Database
+        uses: actions/cache@v4
+        with:
+          path: data/
+          key: sqlite-db-${{ github.run_id }}
+          restore-keys: |
+            sqlite-db-
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Daily Pipeline
+        env:
+          # These map to the variables you will add in GitHub Secrets
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          MY_EMAIL: ${{ secrets.MY_EMAIL }}
+          APP_PASSWORD: ${{ secrets.APP_PASSWORD }}
+        run: |
+          python main.py
