@@ -3,6 +3,9 @@ from .config import YOUTUBE_CHANNELS
 from .scrapers.youtube import YouTubeScraper, ChannelVideo
 from .scrapers.openai import OpenAIScraper
 from .scrapers.anthropic import AnthropicScraper
+from .scrapers.gemini import GeminiScraper
+from .scrapers.xai import XaiScraper
+from .scrapers.deepseek import DeepseekScraper
 from .database.repository import Repository
 
 
@@ -65,6 +68,21 @@ SCRAPER_REGISTRY = [
         AnthropicScraper(),
         lambda s, r, h: _save_rss_articles(s, r, h, r.bulk_create_anthropic_articles),
     ),
+    (
+        "gemini",
+        GeminiScraper(),
+        lambda s, r, h: _save_rss_articles(s, r, h, r.bulk_create_gemini_articles),
+    ),
+    (
+        "xai",
+        XaiScraper(),
+        lambda s, r, h: _save_rss_articles(s, r, h, r.bulk_create_xai_articles),
+    ),
+    (
+        "deepseek",
+        DeepseekScraper(),
+        lambda s, r, h: _save_rss_articles(s, r, h, r.bulk_create_deepseek_articles),
+    ),
 ]
 
 
@@ -87,3 +105,6 @@ if __name__ == "__main__":
     print(f"YouTube videos: {len(results['youtube'])}")
     print(f"OpenAI articles: {len(results['openai'])}")
     print(f"Anthropic articles: {len(results['anthropic'])}")
+    print(f"Gemini articles: {len(results['gemini'])}")
+    print(f"xAI articles: {len(results['xai'])}")
+    print(f"DeepSeek articles: {len(results['deepseek'])}")

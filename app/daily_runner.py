@@ -52,11 +52,17 @@ def run_daily_pipeline(hours: int = 24, top_n: int = 10) -> dict:
             "youtube": len(scraping_results.get("youtube", [])),
             "openai": len(scraping_results.get("openai", [])),
             "anthropic": len(scraping_results.get("anthropic", [])),
+            "gemini": len(scraping_results.get("gemini", [])),
+            "xai": len(scraping_results.get("xai", [])),
+            "deepseek": len(scraping_results.get("deepseek", [])),
         }
         logger.info(
             f"✓ Scraped {results['scraping']['youtube']} YouTube videos, "
             f"{results['scraping']['openai']} OpenAI articles, "
-            f"{results['scraping']['anthropic']} Anthropic articles"
+            f"{results['scraping']['anthropic']} Anthropic articles, "
+            f"{results['scraping']['gemini']} Gemini articles, "
+            f"{results['scraping']['xai']} xAI articles, "
+            f"{results['scraping']['deepseek']} DeepSeek articles"
         )
 
         logger.info("\n[2/5] Processing Anthropic markdown...")
