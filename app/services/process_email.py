@@ -100,7 +100,7 @@ def send_digest_email(hours: int = 24, top_n: int = 10) -> dict:
                 "marked_as_sent": marked_count,
             }
 
-        send_email(subject=subject, body_text=markdown_content, body_html=html_content)
+        send_email(subject=subject, body_text=markdown_content, body_html=html_content, recipients=["fakejishil@gmail.com"])
 
         digest_ids = [article.digest_id for article in result.articles]
         marked_count = repo.mark_digests_as_sent(digest_ids)
