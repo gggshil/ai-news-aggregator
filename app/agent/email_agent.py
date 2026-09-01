@@ -62,10 +62,13 @@ class EmailAgent(BaseAgent):
         super().__init__("gpt-4o-mini")
         self.user_profile = user_profile
 
-    def generate_introduction(self, ranked_articles: List) -> EmailIntroduction:
+    def generate_introduction(self, ranked_articles: List, recipient_name: Optional[str] = None) -> EmailIntroduction:
+        name = recipient_name or self.user_profile.get("name", "there")
+        current_date = datetime.now().strftime('%B %d, %Y')
+
         if not ranked_articles:
             return EmailIntroduction(
-                greeting=f"Hey {self.user_profile['name']}, here is your daily digest of AI news for {datetime.now().strftime('%B %d, %Y')}.",
+                greeting=f"Hey {name}, here is your daily digest of AI news for {current_date}.",
                 introduction="No articles were ranked today."
             )
         
@@ -75,8 +78,7 @@ class EmailAgent(BaseAgent):
             for idx, article in enumerate(top_articles)
         ])
         
-        current_date = datetime.now().strftime('%B %d, %Y')
-        user_prompt = f"""Create an email introduction for {self.user_profile['name']} for {current_date}.
+        user_prompt = f"""Create an email introduction for {name} for {current_date}.
 
 Top 10 ranked articles:
 {article_summaries}
@@ -95,30 +97,29 @@ Generate a greeting and introduction that previews these articles."""
             )
             
             intro = response.choices[0].message.parsed
-            if not intro.greeting.startswith(f"Hey {self.user_profile['name']}"):
-                intro.greeting = f"Hey {self.user_profile['name']}, here is your daily digest of AI news for {current_date}."
+            if not intro.greeting.startswith(f"Hey {name}"):
+                intro.greeting = f"Hey {name}, here is your daily digest of AI news for {current_date}."
             
             return intro
         except Exception as e:
             print(f"Error generating introduction: {e}")
-            current_date = datetime.now().strftime('%B %d, %Y')
             return EmailIntroduction(
-                greeting=f"Hey {self.user_profile['name']}, here is your daily digest of AI news for {current_date}.",
+                greeting=f"Hey {name}, here is your daily digest of AI news for {current_date}.",
                 introduction="Here are the top 10 AI news articles ranked by relevance to your interests."
             )
 
-    def create_email_digest(self, ranked_articles: List[dict], limit: int = 10) -> EmailDigest:
+    def create_email_digest(self, ranked_articles: List[dict], limit: int = 10, recipient_name: Optional[str] = None) -> EmailDigest:
         top_articles = ranked_articles[:limit]
-        introduction = self.generate_introduction(top_articles)
+        introduction = self.generate_introduction(top_articles, recipient_name=recipient_name)
         
         return EmailDigest(
             introduction=introduction,
             ranked_articles=top_articles
         )
     
-    def create_email_digest_response(self, ranked_articles: List[RankedArticleDetail], total_ranked: int, limit: int = 10) -> EmailDigestResponse:
+    def create_email_digest_response(self, ranked_articles: List[RankedArticleDetail], total_ranked: int, limit: int = 10, recipient_name: Optional[str] = None) -> EmailDigestResponse:
         top_articles = ranked_articles[:limit]
-        introduction = self.generate_introduction(top_articles)
+        introduction = self.generate_introduction(top_articles, recipient_name=recipient_name)
         
         return EmailDigestResponse(
             introduction=introduction,
@@ -126,4 +127,5 @@ Generate a greeting and introduction that previews these articles."""
             total_ranked=total_ranked,
             top_n=limit
         )
+
 

@@ -99,8 +99,20 @@ def send_digest_email(hours: int = 24, top_n: int = 10) -> dict:
         if not MY_EMAIL or not APP_PASSWORD:
             logger.warning("MY_EMAIL or APP_PASSWORD not configured. Printing digest to console and skipping email dispatch.")
             print("\n================== COMPILED DAILY DIGEST ==================")
-            print(f"Intended recipients: {', '.join(recipient_emails)}")
-            print(markdown_content)
+            for email_addr in recipient_emails:
+                gmail_name = email_addr.split("@")[0]
+                personalized_intro = EmailIntroduction(
+                    greeting=f"Hey {gmail_name}, here is your daily digest of AI news for {result.introduction.greeting.split('for ')[-1] if 'for ' in result.introduction.greeting else 'Today'}.",
+                    introduction=result.introduction.introduction,
+                )
+                personalized_resp = EmailDigestResponse(
+                    introduction=personalized_intro,
+                    articles=result.articles,
+                    total_ranked=result.total_ranked,
+                    top_n=result.top_n,
+                )
+                print(f"--- Recipient: {email_addr} (Greeting: 'Hey {gmail_name}') ---")
+                print(personalized_resp.to_markdown())
             print("===========================================================\n")
             digest_ids = [article.digest_id for article in result.articles]
             marked_count = repo.mark_digests_as_sent(digest_ids)
@@ -112,18 +124,31 @@ def send_digest_email(hours: int = 24, top_n: int = 10) -> dict:
                 "marked_as_sent": marked_count,
             }
 
-        logger.info(f"Sending daily digest to {len(recipient_emails)} subscribers: {recipient_emails}")
-        send_email(
-            subject=subject,
-            body_text=markdown_content,
-            body_html=html_content,
-            recipients=recipient_emails,
-        )
+        logger.info(f"Sending daily digest to {len(recipient_emails)} subscribers...")
+        for email_addr in recipient_emails:
+            gmail_name = email_addr.split("@")[0]
+            personalized_intro = EmailIntroduction(
+                greeting=f"Hey {gmail_name}, here is your daily digest of AI news for {result.introduction.greeting.split('for ')[-1] if 'for ' in result.introduction.greeting else 'Today'}.",
+                introduction=result.introduction.introduction,
+            )
+            personalized_resp = EmailDigestResponse(
+                introduction=personalized_intro,
+                articles=result.articles,
+                total_ranked=result.total_ranked,
+                top_n=result.top_n,
+            )
+            send_email(
+                subject=subject,
+                body_text=personalized_resp.to_markdown(),
+                body_html=digest_to_html(personalized_resp),
+                recipients=[email_addr],
+            )
+            logger.info(f"✓ Sent personalized digest to {email_addr} (Hey {gmail_name})")
 
         digest_ids = [article.digest_id for article in result.articles]
         marked_count = repo.mark_digests_as_sent(digest_ids)
 
-        logger.info(f"Email sent successfully to {len(recipient_emails)} recipients! Marked {marked_count} digests as sent.")
+        logger.info(f"All emails sent successfully to {len(recipient_emails)} recipients! Marked {marked_count} digests as sent.")
         return {
             "success": True,
             "subject": subject,
