@@ -16,8 +16,14 @@ class AuthResult {
 }
 
 class ApiService {
-  // Default URL points to local dev server (port 8000) or your deployed Vercel URL
-  static String baseUrl = 'http://localhost:8000';
+  // Centralized Environment-driven Base URL
+  // Can be configured at build time with: --dart-define=API_BASE_URL=https://your-backend.onrender.com
+  static const String defaultBaseUrl = String.fromEnvironment(
+    'API_BASE_URL',
+    defaultValue: 'http://localhost:8000',
+  );
+
+  static String baseUrl = defaultBaseUrl;
 
   static Future<AuthResult> authenticate({
     required String email,
@@ -25,7 +31,9 @@ class ApiService {
     required bool isRegistering,
     String? customBaseUrl,
   }) async {
-    final effectiveUrl = customBaseUrl ?? baseUrl;
+    final effectiveUrl = (customBaseUrl != null && customBaseUrl.trim().isNotEmpty)
+        ? customBaseUrl.trim()
+        : baseUrl;
     final uri = Uri.parse('$effectiveUrl/api/auth');
 
     try {
@@ -52,14 +60,14 @@ class ApiService {
       } else {
         return AuthResult(
           success: false,
-          message: data['error'] ?? 'Authentication failed.',
-          error: data['error'],
+          message: data['detail'] ?? data['error'] ?? 'Authentication failed.',
+          error: data['detail'] ?? data['error'],
         );
       }
     } catch (e) {
       return AuthResult(
         success: false,
-        message: 'Could not connect to backend server: $e',
+        message: 'Unable to connect to the server. Please check your internet connection and try again.',
         error: e.toString(),
       );
     }
@@ -69,7 +77,9 @@ class ApiService {
     required String email,
     String? customBaseUrl,
   }) async {
-    final effectiveUrl = customBaseUrl ?? baseUrl;
+    final effectiveUrl = (customBaseUrl != null && customBaseUrl.trim().isNotEmpty)
+        ? customBaseUrl.trim()
+        : baseUrl;
     final uri = Uri.parse('$effectiveUrl/api/auth');
 
     try {
@@ -95,17 +105,16 @@ class ApiService {
       } else {
         return AuthResult(
           success: false,
-          message: data['error'] ?? 'Google authentication failed.',
-          error: data['error'],
+          message: data['detail'] ?? data['error'] ?? 'Google authentication failed.',
+          error: data['detail'] ?? data['error'],
         );
       }
     } catch (e) {
       return AuthResult(
         success: false,
-        message: 'Could not connect to backend server: $e',
+        message: 'Unable to connect to the server. Please check your internet connection and try again.',
         error: e.toString(),
       );
     }
   }
 }
-

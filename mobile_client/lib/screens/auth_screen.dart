@@ -20,11 +20,14 @@ class AuthScreen extends StatefulWidget {
 class _AuthScreenState extends State<AuthScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
+
   final _passwordController = TextEditingController();
-  final _serverController = TextEditingController(text: 'http://localhost:8000');
+  final _serverController = TextEditingController(text: ApiService.defaultBaseUrl);
+
   bool _isRegistering = true;
   bool _isLoading = false;
   String? _errorMessage;
+
 
 
 
