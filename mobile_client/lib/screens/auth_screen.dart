@@ -22,11 +22,11 @@ class _AuthScreenState extends State<AuthScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _serverController = TextEditingController(text: 'http://localhost:8000');
-  final GoogleSignIn _googleSignIn = GoogleSignIn(scopes: ['email']);
-
   bool _isRegistering = true;
   bool _isLoading = false;
   String? _errorMessage;
+
+
 
   @override
   void dispose() {
@@ -165,7 +165,8 @@ class _AuthScreenState extends State<AuthScreen> {
     });
 
     try {
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      final googleSignIn = GoogleSignIn(scopes: ['email']);
+      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
       if (googleUser == null) {
         setState(() {
           _isLoading = false;
@@ -181,6 +182,7 @@ class _AuthScreenState extends State<AuthScreen> {
       _showGooglePromptDialog();
     }
   }
+
 
   Future<void> _handleSubmit() async {
     if (!_formKey.currentState!.validate()) return;
