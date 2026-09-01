@@ -8,10 +8,11 @@ class AppLogo extends StatelessWidget {
 
   const AppLogo({
     super.key,
-    this.size = 38,
+    this.size = 46,
     this.showBadge = true,
     this.useFullLogoWithBg = false,
   });
+
 
   @override
   Widget build(BuildContext context) {

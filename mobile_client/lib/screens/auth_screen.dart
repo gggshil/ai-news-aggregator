@@ -315,8 +315,9 @@ class _AuthScreenState extends State<AuthScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Flexible(
-            child: AppLogo(size: isDesktop ? 40 : 34, showBadge: true),
+            child: AppLogo(size: isDesktop ? 48 : 38, showBadge: true),
           ),
+
           const SizedBox(width: 12),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
