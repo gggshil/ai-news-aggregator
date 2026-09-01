@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import '../services/api_service.dart';
-import 'dashboard_screen.dart';
 import 'success_animation_screen.dart';
 
 
@@ -16,6 +16,7 @@ class _AuthScreenState extends State<AuthScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _serverController = TextEditingController(text: 'http://localhost:8000');
+  final GoogleSignIn _googleSignIn = GoogleSignIn(scopes: ['email']);
 
   bool _isRegistering = true;
   bool _isLoading = false;
@@ -28,6 +29,64 @@ class _AuthScreenState extends State<AuthScreen> {
     _passwordController.dispose();
     _serverController.dispose();
     super.dispose();
+  }
+
+  Future<void> _handleGoogleSignIn() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      if (googleUser == null) {
+        // User cancelled the sign-in prompt
+        setState(() {
+          _isLoading = false;
+        });
+        return;
+      }
+
+      final serverUrl = _serverController.text.trim();
+      final result = await ApiService.authenticateWithGoogle(
+        email: googleUser.email,
+        customBaseUrl: serverUrl.isNotEmpty ? serverUrl : null,
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        _isLoading = false;
+      });
+
+      if (result.success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Verified Google Account: ${googleUser.email}'),
+            backgroundColor: const Color(0xFF10B981),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ),
+        );
+
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => SuccessAnimationScreen(email: googleUser.email),
+          ),
+        );
+      } else {
+        setState(() {
+          _errorMessage = result.message;
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+        _errorMessage = 'Google Sign-In failed: $e';
+      });
+    }
   }
 
   Future<void> _handleSubmit() async {
@@ -71,13 +130,13 @@ class _AuthScreenState extends State<AuthScreen> {
           builder: (context) => SuccessAnimationScreen(email: result.email ?? email),
         ),
       );
-
     } else {
       setState(() {
         _errorMessage = result.message;
       });
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -323,9 +382,61 @@ class _AuthScreenState extends State<AuthScreen> {
                                   ),
                           ),
                         ),
+                        const SizedBox(height: 18),
+                        const Row(
+                          children: [
+                            Expanded(child: Divider(color: Color(0xFF334155))),
+                            Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 12.0),
+                              child: Text(
+                                'OR',
+                                style: TextStyle(
+                                  color: Color(0xFF64748B),
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            Expanded(child: Divider(color: Color(0xFF334155))),
+                          ],
+                        ),
+                        const SizedBox(height: 18),
+
+                        // Google Sign-In Button
+                        SizedBox(
+                          width: double.infinity,
+                          height: 50,
+                          child: OutlinedButton(
+                            onPressed: _isLoading ? null : _handleGoogleSignIn,
+                            style: OutlinedButton.styleFrom(
+                              backgroundColor: Colors.white,
+                              foregroundColor: const Color(0xFF1E293B),
+                              side: BorderSide.none,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                            ),
+                            child: const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.g_mobiledata_rounded, size: 30, color: Color(0xFFEA4335)),
+                                SizedBox(width: 4),
+                                Text(
+                                  'Continue with Google',
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w700,
+                                    color: Color(0xFF1E293B),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ),
+
                   const SizedBox(height: 24),
 
                   // Toggle Sign Up / Sign In

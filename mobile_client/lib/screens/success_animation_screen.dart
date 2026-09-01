@@ -17,7 +17,6 @@ class _SuccessAnimationScreenState extends State<SuccessAnimationScreen>
   late AnimationController _orbitController;
   late AnimationController _particleController;
   late Animation<double> _scaleAnimation;
-  late Animation<double> _fadeAnimation;
 
   @override
   void initState() {
@@ -42,12 +41,6 @@ class _SuccessAnimationScreenState extends State<SuccessAnimationScreen>
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
 
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _pulseController,
-        curve: const Interval(0.0, 0.6, curve: Curves.easeIn),
-      ),
-    );
   }
 
   @override

@@ -45,6 +45,37 @@ class handler(BaseHTTPRequestHandler):
             email = data.get("email", "").strip().lower()
             password = data.get("password", "")
 
+            if action == "google_signin":
+                if not email or "@" not in email:
+                    self.send_response(400)
+                    self._send_cors_headers()
+                    self.send_header("Content-Type", "application/json")
+                    self.end_headers()
+                    self.wfile.write(
+                        json.dumps({"success": False, "error": "Invalid Google email address."}).encode("utf-8")
+                    )
+                    return
+
+                repo = Repository()
+                user = repo.get_subscriber_by_email(email)
+                if not user:
+                    import secrets
+                    pwd_hash = hash_password(secrets.token_urlsafe(32))
+                    user = repo.create_subscriber(email=email, password_hash=pwd_hash)
+
+                self.send_response(200)
+                self._send_cors_headers()
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(
+                    json.dumps({
+                        "success": True,
+                        "message": "Authenticated with Google! You are active for AI news digests.",
+                        "subscriber": {"id": user.id, "email": user.email},
+                    }).encode("utf-8")
+                )
+                return
+
             if not email or "@" not in email:
                 self.send_response(400)
                 self._send_cors_headers()
@@ -69,6 +100,7 @@ class handler(BaseHTTPRequestHandler):
                 return
 
             repo = Repository()
+
 
             if action == "register":
                 existing = repo.get_subscriber_by_email(email)
