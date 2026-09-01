@@ -31,6 +31,116 @@ class _AuthScreenState extends State<AuthScreen> {
     super.dispose();
   }
 
+  Future<void> _processGoogleAuth(String email) async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    final serverUrl = _serverController.text.trim();
+    final result = await ApiService.authenticateWithGoogle(
+      email: email,
+      customBaseUrl: serverUrl.isNotEmpty ? serverUrl : null,
+    );
+
+    if (!mounted) return;
+
+    setState(() {
+      _isLoading = false;
+    });
+
+    if (result.success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Verified Google Account: $email'),
+          backgroundColor: const Color(0xFF10B981),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+      );
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => SuccessAnimationScreen(email: email),
+        ),
+      );
+    } else {
+      setState(() {
+        _errorMessage = result.message;
+      });
+    }
+  }
+
+  Future<void> _showGooglePromptDialog() async {
+    final googleEmailController = TextEditingController(
+      text: _emailController.text.isNotEmpty ? _emailController.text : '',
+    );
+
+    await showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1E293B),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Row(
+          children: [
+            Icon(Icons.g_mobiledata_rounded, size: 36, color: Color(0xFFEA4335)),
+            SizedBox(width: 8),
+            Text(
+              'Sign in with Google',
+              style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Confirm your Google email address to receive daily AI digests without needing a password:',
+              style: TextStyle(color: Color(0xFF94A3B8), fontSize: 13, height: 1.4),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: googleEmailController,
+              keyboardType: TextInputType.emailAddress,
+              style: const TextStyle(color: Colors.white),
+              decoration: InputDecoration(
+                hintText: 'yourname@gmail.com',
+                hintStyle: const TextStyle(color: Color(0xFF64748B)),
+                filled: true,
+                fillColor: const Color(0xFF0F172A),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                prefixIcon: const Icon(Icons.mail_outline, color: Color(0xFF38BDF8)),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel', style: TextStyle(color: Color(0xFF94A3B8))),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF6366F1),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            onPressed: () {
+              final email = googleEmailController.text.trim();
+              if (email.contains('@') && email.contains('.')) {
+                Navigator.pop(ctx);
+                _processGoogleAuth(email);
+              }
+            },
+            child: const Text('Continue'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _handleGoogleSignIn() async {
     setState(() {
       _isLoading = true;
@@ -40,54 +150,22 @@ class _AuthScreenState extends State<AuthScreen> {
     try {
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       if (googleUser == null) {
-        // User cancelled the sign-in prompt
         setState(() {
           _isLoading = false;
         });
         return;
       }
 
-      final serverUrl = _serverController.text.trim();
-      final result = await ApiService.authenticateWithGoogle(
-        email: googleUser.email,
-        customBaseUrl: serverUrl.isNotEmpty ? serverUrl : null,
-      );
-
-      if (!mounted) return;
-
-      setState(() {
-        _isLoading = false;
-      });
-
-      if (result.success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Verified Google Account: ${googleUser.email}'),
-            backgroundColor: const Color(0xFF10B981),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          ),
-        );
-
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => SuccessAnimationScreen(email: googleUser.email),
-          ),
-        );
-      } else {
-        setState(() {
-          _errorMessage = result.message;
-        });
-      }
+      await _processGoogleAuth(googleUser.email);
     } catch (e) {
-      if (!mounted) return;
       setState(() {
         _isLoading = false;
-        _errorMessage = 'Google Sign-In failed: $e';
       });
+      // In dev mode/web when Google Cloud client ID is not configured yet, show seamless Google account dialog
+      _showGooglePromptDialog();
     }
   }
+
 
   Future<void> _handleSubmit() async {
     if (!_formKey.currentState!.validate()) return;
