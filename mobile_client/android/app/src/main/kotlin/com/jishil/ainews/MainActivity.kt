@@ -1,4 +1,4 @@
-package com.example.mobile_client
+package com.jishil.ainews
 
 import io.flutter.embedding.android.FlutterActivity
 
