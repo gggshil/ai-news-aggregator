@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
 
 class DashboardScreen extends StatelessWidget {
   final String email;
@@ -17,28 +18,28 @@ class DashboardScreen extends StatelessWidget {
     ];
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0F172A),
+      backgroundColor: AppColors.bgDark,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         title: const Row(
           children: [
-            Icon(Icons.hub_outlined, color: Color(0xFF38BDF8), size: 24),
-            SizedBox(width: 8),
+            Icon(Icons.hub_outlined, color: AppColors.accentCyan, size: 22),
+            SizedBox(width: 10),
             Text(
               'AI News Hub',
               style: TextStyle(
                 fontWeight: FontWeight.w700,
-                fontSize: 20,
-                color: Colors.white,
-                letterSpacing: 0.5,
+                fontSize: 18,
+                color: AppColors.textPrimary,
+                letterSpacing: -0.3,
               ),
             ),
           ],
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout_rounded, color: Color(0xFF94A3B8)),
+            icon: const Icon(Icons.logout_rounded, color: AppColors.textSecondary),
             tooltip: 'Log Out',
             onPressed: () {
               Navigator.pop(context);
@@ -56,19 +57,19 @@ class DashboardScreen extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(24),
+                borderRadius: BorderRadius.circular(20),
                 gradient: const LinearGradient(
-                  colors: [Color(0xFF1E1B4B), Color(0xFF0F172A)],
+                  colors: [Color(0xFF151D2E), Color(0xFF0D1320)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 border: Border.all(
-                  color: const Color(0xFF6366F1).withOpacity(0.3),
-                  width: 1.5,
+                  color: AppColors.primaryIndigo.withValues(alpha: 0.3),
+                  width: 1,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF6366F1).withOpacity(0.15),
+                    color: AppColors.primaryIndigo.withValues(alpha: 0.12),
                     blurRadius: 20,
                     offset: const Offset(0, 8),
                   ),
@@ -81,24 +82,24 @@ class DashboardScreen extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF10B981).withOpacity(0.15),
+                          color: AppColors.successBg,
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
-                            color: const Color(0xFF10B981).withOpacity(0.4),
+                            color: AppColors.success.withValues(alpha: 0.4),
                           ),
                         ),
                         child: const Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.check_circle_rounded, color: Color(0xFF10B981), size: 16),
+                            Icon(Icons.check_circle_rounded, color: AppColors.success, size: 14),
                             SizedBox(width: 6),
                             Text(
                               'AUTOMATION ACTIVE',
                               style: TextStyle(
                                 color: Color(0xFF34D399),
-                                fontSize: 12,
+                                fontSize: 11,
                                 fontWeight: FontWeight.bold,
                                 letterSpacing: 0.5,
                               ),
@@ -106,15 +107,15 @@ class DashboardScreen extends StatelessWidget {
                           ],
                         ),
                       ),
-                      const Icon(Icons.mark_email_read_outlined, color: Color(0xFF818CF8), size: 28),
+                      const Icon(Icons.mark_email_read_outlined, color: AppColors.accentCyan, size: 26),
                     ],
                   ),
                   const SizedBox(height: 18),
                   const Text(
                     'Subscribed Email',
                     style: TextStyle(
-                      color: Color(0xFF94A3B8),
-                      fontSize: 13,
+                      color: AppColors.textSecondary,
+                      fontSize: 12,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -123,7 +124,7 @@ class DashboardScreen extends StatelessWidget {
                     email,
                     style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 18,
+                      fontSize: 17,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -131,12 +132,13 @@ class DashboardScreen extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF0B1329),
+                      color: AppColors.surfaceInput,
                       borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.borderSubtle),
                     ),
                     child: const Row(
                       children: [
-                        Icon(Icons.schedule_rounded, color: Color(0xFF38BDF8), size: 20),
+                        Icon(Icons.schedule_rounded, color: AppColors.accentCyan, size: 18),
                         SizedBox(width: 10),
                         Expanded(
                           child: Text(
@@ -161,40 +163,40 @@ class DashboardScreen extends StatelessWidget {
               'Connected AI Sources',
               style: TextStyle(
                 color: Colors.white,
-                fontSize: 18,
+                fontSize: 17,
                 fontWeight: FontWeight.w700,
-                letterSpacing: 0.3,
+                letterSpacing: -0.2,
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 14),
             ListView.separated(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: sources.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 10),
+              separatorBuilder: (context, index) => const SizedBox(height: 10),
               itemBuilder: (context, index) {
                 final source = sources[index];
                 return Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF1E293B).withOpacity(0.6),
-                    borderRadius: BorderRadius.circular(16),
+                    color: AppColors.surfaceCard,
+                    borderRadius: BorderRadius.circular(14),
                     border: Border.all(
-                      color: Colors.white.withOpacity(0.06),
+                      color: AppColors.borderSubtle,
                     ),
                   ),
                   child: Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(10),
+                        padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: (source['color'] as Color).withOpacity(0.15),
-                          borderRadius: BorderRadius.circular(12),
+                          color: (source['color'] as Color).withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(10),
                         ),
                         child: Icon(
                           source['icon'] as IconData,
                           color: source['color'] as Color,
-                          size: 22,
+                          size: 20,
                         ),
                       ),
                       const SizedBox(width: 14),
@@ -211,13 +213,14 @@ class DashboardScreen extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF334155),
+                          color: AppColors.surfaceElevated,
                           borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: AppColors.borderSubtle),
                         ),
                         child: const Text(
                           'Live Feed',
                           style: TextStyle(
-                            color: Color(0xFF94A3B8),
+                            color: AppColors.textSecondary,
                             fontSize: 11,
                             fontWeight: FontWeight.w500,
                           ),
@@ -235,3 +238,4 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 }
+

@@ -1,8 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../services/api_service.dart';
+import '../theme/app_theme.dart';
+import '../widgets/app_logo.dart';
+import '../widgets/collapsible_settings.dart';
+import '../widgets/error_alert.dart';
+import '../widgets/feature_item.dart';
+import '../widgets/google_button.dart';
+import '../widgets/input_field.dart';
+import '../widgets/primary_button.dart';
 import 'success_animation_screen.dart';
-
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -20,7 +27,6 @@ class _AuthScreenState extends State<AuthScreen> {
 
   bool _isRegistering = true;
   bool _isLoading = false;
-  bool _obscurePassword = true;
   String? _errorMessage;
 
   @override
@@ -53,7 +59,7 @@ class _AuthScreenState extends State<AuthScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Verified Google Account: $email'),
-          backgroundColor: const Color(0xFF10B981),
+          backgroundColor: AppColors.success,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         ),
@@ -80,8 +86,11 @@ class _AuthScreenState extends State<AuthScreen> {
     await showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1E293B),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        backgroundColor: AppColors.surfaceElevated,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: const BorderSide(color: AppColors.borderSubtle),
+        ),
         title: const Row(
           children: [
             Icon(Icons.g_mobiledata_rounded, size: 36, color: Color(0xFFEA4335)),
@@ -98,7 +107,7 @@ class _AuthScreenState extends State<AuthScreen> {
           children: [
             const Text(
               'Confirm your Google email address to receive daily AI digests without needing a password:',
-              style: TextStyle(color: Color(0xFF94A3B8), fontSize: 13, height: 1.4),
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 13, height: 1.4),
             ),
             const SizedBox(height: 16),
             TextField(
@@ -107,11 +116,18 @@ class _AuthScreenState extends State<AuthScreen> {
               style: const TextStyle(color: Colors.white),
               decoration: InputDecoration(
                 hintText: 'yourname@gmail.com',
-                hintStyle: const TextStyle(color: Color(0xFF64748B)),
+                hintStyle: const TextStyle(color: AppColors.textPlaceholder),
                 filled: true,
-                fillColor: const Color(0xFF0F172A),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                prefixIcon: const Icon(Icons.mail_outline, color: Color(0xFF38BDF8)),
+                fillColor: AppColors.surfaceInput,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: AppColors.borderSubtle),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: AppColors.primaryIndigo),
+                ),
+                prefixIcon: const Icon(Icons.mail_outline_rounded, color: AppColors.accentCyan),
               ),
             ),
           ],
@@ -119,11 +135,11 @@ class _AuthScreenState extends State<AuthScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel', style: TextStyle(color: Color(0xFF94A3B8))),
+            child: const Text('Cancel', style: TextStyle(color: AppColors.textMuted)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF6366F1),
+              backgroundColor: AppColors.primaryIndigo,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
@@ -161,11 +177,9 @@ class _AuthScreenState extends State<AuthScreen> {
       setState(() {
         _isLoading = false;
       });
-      // In dev mode/web when Google Cloud client ID is not configured yet, show seamless Google account dialog
       _showGooglePromptDialog();
     }
   }
-
 
   Future<void> _handleSubmit() async {
     if (!_formKey.currentState!.validate()) return;
@@ -196,7 +210,7 @@ class _AuthScreenState extends State<AuthScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(result.message),
-          backgroundColor: const Color(0xFF10B981),
+          backgroundColor: AppColors.success,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         ),
@@ -210,384 +224,351 @@ class _AuthScreenState extends State<AuthScreen> {
       );
     } else {
       setState(() {
-        _errorMessage = result.message;
+        _errorMessage = _formatErrorMessage(result.message);
       });
     }
   }
 
+  String _formatErrorMessage(String raw) {
+    if (raw.contains('MissingPluginException') || raw.contains('PlatformException')) {
+      return "Google Sign-In isn't available in this environment. Please use email and password.";
+    }
+    if (raw.contains('Could not connect')) {
+      return "Could not connect to the backend server. Please verify the server is running.";
+    }
+    return raw;
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0B0F19),
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 28.0, vertical: 20.0),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // Glowing App Icon / Logo
-                  Container(
-                    width: 80,
-                    height: 80,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF6366F1), Color(0xFF38BDF8)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF6366F1).withOpacity(0.4),
-                          blurRadius: 30,
-                          spreadRadius: 4,
-                        ),
-                      ],
-                    ),
-                    child: const Icon(
-                      Icons.auto_awesome,
-                      color: Colors.white,
-                      size: 40,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Header Titles
-                  const Text(
-                    'AI News Aggregator',
-                    style: TextStyle(
-                      fontSize: 26,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.white,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    _isRegistering
-                        ? 'Enter your Gmail to receive daily curated AI news automatically.'
-                        : 'Sign in to manage your AI digest preferences.',
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: Color(0xFF94A3B8),
-                      height: 1.4,
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-
-                  // Error Message Banner
-                  if (_errorMessage != null) ...[
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFEF4444).withOpacity(0.12),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: const Color(0xFFEF4444).withOpacity(0.3),
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.error_outline_rounded, color: Color(0xFFEF4444), size: 20),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Text(
-                              _errorMessage!,
-                              style: const TextStyle(
-                                color: Color(0xFFFCA5A5),
-                                fontSize: 13,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 20),
+      backgroundColor: AppColors.bgDark,
+      body: Stack(
+        children: [
+          // Subtle atmospheric background gradient
+          Positioned.fill(
+            child: Container(
+              decoration: const BoxDecoration(
+                gradient: RadialGradient(
+                  center: Alignment(-0.6, -0.4),
+                  radius: 1.2,
+                  colors: [
+                    Color(0x184F46E5),
+                    Color(0x0C0D1320),
+                    Colors.transparent,
                   ],
-
-                  // Glassmorphism Card Container
-                  Container(
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF1E293B).withOpacity(0.5),
-                      borderRadius: BorderRadius.circular(24),
-                      border: Border.all(
-                        color: Colors.white.withOpacity(0.08),
-                        width: 1.2,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.3),
-                          blurRadius: 20,
-                          offset: const Offset(0, 10),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Email Field
-                        const Text(
-                          'Gmail Address',
-                          style: TextStyle(
-                            color: Color(0xFFCBD5E1),
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        TextFormField(
-                          controller: _emailController,
-                          keyboardType: TextInputType.emailAddress,
-                          style: const TextStyle(color: Colors.white),
-                          decoration: InputDecoration(
-                            hintText: 'yourname@gmail.com',
-                            hintStyle: const TextStyle(color: Color(0xFF64748B)),
-                            prefixIcon: const Icon(Icons.mail_outline_rounded, color: Color(0xFF38BDF8)),
-                            filled: true,
-                            fillColor: const Color(0xFF0F172A),
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(14),
-                              borderSide: BorderSide.none,
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(14),
-                              borderSide: const BorderSide(color: Color(0xFF6366F1), width: 1.5),
-                            ),
-                          ),
-                          validator: (val) {
-                            if (val == null || val.trim().isEmpty) {
-                              return 'Please enter your email';
-                            }
-                            if (!val.contains('@') || !val.contains('.')) {
-                              return 'Please enter a valid email address';
-                            }
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: 18),
-
-                        // Password Field
-                        const Text(
-                          'Password',
-                          style: TextStyle(
-                            color: Color(0xFFCBD5E1),
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        TextFormField(
-                          controller: _passwordController,
-                          obscureText: _obscurePassword,
-                          style: const TextStyle(color: Colors.white),
-                          decoration: InputDecoration(
-                            hintText: '••••••••',
-                            hintStyle: const TextStyle(color: Color(0xFF64748B)),
-                            prefixIcon: const Icon(Icons.lock_outline_rounded, color: Color(0xFF38BDF8)),
-                            suffixIcon: IconButton(
-                              icon: Icon(
-                                _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                                color: const Color(0xFF64748B),
-                              ),
-                              onPressed: () {
-                                setState(() {
-                                  _obscurePassword = !_obscurePassword;
-                                });
-                              },
-                            ),
-                            filled: true,
-                            fillColor: const Color(0xFF0F172A),
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(14),
-                              borderSide: BorderSide.none,
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(14),
-                              borderSide: const BorderSide(color: Color(0xFF6366F1), width: 1.5),
-                            ),
-                          ),
-                          validator: (val) {
-                            if (val == null || val.isEmpty) {
-                              return 'Please enter your password';
-                            }
-                            if (val.length < 6) {
-                              return 'Password must be at least 6 characters';
-                            }
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: 24),
-
-                        // Submit Button
-                        SizedBox(
-                          width: double.infinity,
-                          height: 52,
-                          child: ElevatedButton(
-                            onPressed: _isLoading ? null : _handleSubmit,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF6366F1),
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(14),
-                              ),
-                              elevation: 4,
-                              shadowColor: const Color(0xFF6366F1).withOpacity(0.5),
-                            ),
-                            child: _isLoading
-                                ? const SizedBox(
-                                    width: 24,
-                                    height: 24,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2.5,
-                                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                                    ),
-                                  )
-                                : Text(
-                                    _isRegistering ? 'Subscribe for AI News' : 'Log In',
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w700,
-                                      letterSpacing: 0.5,
-                                    ),
-                                  ),
-                          ),
-                        ),
-                        const SizedBox(height: 18),
-                        const Row(
-                          children: [
-                            Expanded(child: Divider(color: Color(0xFF334155))),
-                            Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 12.0),
-                              child: Text(
-                                'OR',
-                                style: TextStyle(
-                                  color: Color(0xFF64748B),
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            Expanded(child: Divider(color: Color(0xFF334155))),
-                          ],
-                        ),
-                        const SizedBox(height: 18),
-
-                        // Google Sign-In Button
-                        SizedBox(
-                          width: double.infinity,
-                          height: 50,
-                          child: OutlinedButton(
-                            onPressed: _isLoading ? null : _handleGoogleSignIn,
-                            style: OutlinedButton.styleFrom(
-                              backgroundColor: Colors.white,
-                              foregroundColor: const Color(0xFF1E293B),
-                              side: BorderSide.none,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(14),
-                              ),
-                            ),
-                            child: const Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.g_mobiledata_rounded, size: 30, color: Color(0xFFEA4335)),
-                                SizedBox(width: 4),
-                                Text(
-                                  'Continue with Google',
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w700,
-                                    color: Color(0xFF1E293B),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  // Toggle Sign Up / Sign In
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        _isRegistering ? 'Already subscribed?' : "Don't have an account?",
-                        style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          setState(() {
-                            _isRegistering = !_isRegistering;
-                            _errorMessage = null;
-                          });
-                        },
-                        child: Text(
-                          _isRegistering ? 'Log In' : 'Subscribe Now',
-                          style: const TextStyle(
-                            color: Color(0xFF38BDF8),
-                            fontWeight: FontWeight.w700,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // Server URL settings expander
-                  Theme(
-                    data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-                    child: ExpansionTile(
-                      tilePadding: EdgeInsets.zero,
-                      title: const Text(
-                        'Backend Server Settings',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: Color(0xFF64748B),
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.only(top: 8.0),
-                          child: TextFormField(
-                            controller: _serverController,
-                            style: const TextStyle(color: Colors.white, fontSize: 13),
-                            decoration: InputDecoration(
-                              labelText: 'API Endpoint Base URL',
-                              labelStyle: const TextStyle(color: Color(0xFF64748B), fontSize: 12),
-                              hintText: 'http://localhost:8000 or your Vercel domain',
-                              hintStyle: const TextStyle(color: Color(0xFF475569), fontSize: 12),
-                              filled: true,
-                              fillColor: const Color(0xFF1E293B),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10),
-                                borderSide: BorderSide.none,
-                              ),
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+                  stops: [0.0, 0.5, 1.0],
+                ),
               ),
             ),
           ),
+          Positioned.fill(
+            child: Container(
+              decoration: const BoxDecoration(
+                gradient: RadialGradient(
+                  center: Alignment(0.8, 0.6),
+                  radius: 1.0,
+                  colors: [
+                    Color(0x147C3AED),
+                    Colors.transparent,
+                  ],
+                  stops: [0.0, 0.8],
+                ),
+              ),
+            ),
+          ),
+
+          // Main Responsive Content
+          SafeArea(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final isDesktop = constraints.maxWidth >= 960;
+
+                if (isDesktop) {
+                  return Center(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 36),
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 1140),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            // Left Hero Area
+                            Expanded(
+                              flex: 11,
+                              child: _buildHeroSection(isDesktop: true),
+                            ),
+                            const SizedBox(width: 64),
+                            // Right Auth Card
+                            Expanded(
+                              flex: 10,
+                              child: _buildAuthCard(),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                } else {
+                  // Tablet & Mobile
+                  return Center(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 480),
+                        child: Column(
+                          children: [
+                            _buildHeroSection(isDesktop: false),
+                            const SizedBox(height: 32),
+                            _buildAuthCard(),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                }
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeroSection({required bool isDesktop}) {
+    return Column(
+      crossAxisAlignment: isDesktop ? CrossAxisAlignment.start : CrossAxisAlignment.center,
+      children: [
+        // App Logo & Brand
+        const AppLogo(
+          size: 48,
+          showText: true,
+          subtitle: 'Autonomous Intelligence Digest',
+        ),
+        const SizedBox(height: 32),
+
+        // Hero Headline
+        Text(
+          'AI intelligence,\ndelivered every morning.',
+          textAlign: isDesktop ? TextAlign.left : TextAlign.center,
+          style: TextStyle(
+            fontSize: isDesktop ? 38 : 28,
+            fontWeight: FontWeight.w800,
+            color: AppColors.textPrimary,
+            letterSpacing: -1.0,
+            height: 1.15,
+          ),
+        ),
+        const SizedBox(height: 16),
+
+        // Supporting Subtext
+        Text(
+          'Stay ahead of the AI curve with a daily intelligence digest curated from OpenAI, Anthropic, Gemini, DeepSeek, and leading research papers.',
+          textAlign: isDesktop ? TextAlign.left : TextAlign.center,
+          style: TextStyle(
+            fontSize: isDesktop ? 16 : 14,
+            color: AppColors.textSecondary,
+            height: 1.5,
+          ),
+        ),
+        const SizedBox(height: 32),
+
+        // Feature Highlights
+        if (isDesktop) ...[
+          const FeatureItem(
+            icon: Icons.psychology_outlined,
+            title: 'Multi-Agent Curation',
+            description: 'Intelligent GPT-4o agents extract key breakthroughs and rank top 10 stories.',
+          ),
+          const SizedBox(height: 18),
+          const FeatureItem(
+            icon: Icons.mark_email_read_outlined,
+            title: 'Direct to Your Gmail',
+            description: 'Automated 24/7 delivery with personalized greeting tailored to your email.',
+          ),
+          const SizedBox(height: 18),
+          const FeatureItem(
+            icon: Icons.verified_user_outlined,
+            title: 'Zero Noise & Hallucinations',
+            description: 'Direct summaries of official releases, research logs, and video transcripts.',
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildAuthCard() {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surfaceCard.withValues(alpha: 0.85),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.borderSubtle, width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.35),
+            blurRadius: 32,
+            offset: const Offset(0, 8),
+          ),
+          BoxShadow(
+            color: AppColors.primaryIndigo.withValues(alpha: 0.08),
+            blurRadius: 24,
+            spreadRadius: 1,
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(32),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Card Title & Subtitle
+            Text(
+              _isRegistering ? 'Subscribe to AI News' : 'Welcome back',
+              style: const TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textPrimary,
+                letterSpacing: -0.4,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              _isRegistering
+                  ? 'Get the most important AI updates delivered to your inbox.'
+                  : 'Enter your credentials to manage your subscription.',
+              style: const TextStyle(
+                fontSize: 13,
+                color: AppColors.textSecondary,
+                height: 1.4,
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // Error Alert (Dismissible)
+            if (_errorMessage != null)
+              ErrorAlert(
+                message: _errorMessage!,
+                onDismiss: () => setState(() => _errorMessage = null),
+              ),
+
+            // Email Address Input
+            InputField(
+              label: 'Email address',
+              placeholder: 'you@gmail.com',
+              controller: _emailController,
+              prefixIcon: Icons.mail_outline_rounded,
+              keyboardType: TextInputType.emailAddress,
+              validator: (val) {
+                if (val == null || val.trim().isEmpty) {
+                  return 'Please enter your email';
+                }
+                if (!val.contains('@') || !val.contains('.')) {
+                  return 'Enter a valid email address';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 18),
+
+            // Password Input
+            InputField(
+              label: 'Password',
+              placeholder: 'Enter your password',
+              controller: _passwordController,
+              prefixIcon: Icons.lock_outline_rounded,
+              isPassword: true,
+              validator: (val) {
+                if (val == null || val.isEmpty) {
+                  return 'Please enter your password';
+                }
+                if (val.length < 6) {
+                  return 'Password must be at least 6 characters';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 24),
+
+            // Primary Submit Button
+            PrimaryButton(
+              text: _isRegistering ? 'Subscribe for AI News' : 'Log In',
+              isLoading: _isLoading,
+              onPressed: _handleSubmit,
+            ),
+            const SizedBox(height: 20),
+
+            // OR Divider
+            const Row(
+              children: [
+                Expanded(child: Divider(color: AppColors.borderSubtle)),
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 14.0),
+                  child: Text(
+                    'OR',
+                    style: TextStyle(
+                      color: AppColors.textMuted,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.8,
+                    ),
+                  ),
+                ),
+                Expanded(child: Divider(color: AppColors.borderSubtle)),
+              ],
+            ),
+            const SizedBox(height: 20),
+
+            // Google Sign-In Button
+            GoogleButton(
+              isLoading: _isLoading,
+              onPressed: _handleGoogleSignIn,
+            ),
+            const SizedBox(height: 24),
+
+            // Toggle Between Sign Up and Log In
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  _isRegistering ? 'Already subscribed?' : "Don't have an account?",
+                  style: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 13,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                InkWell(
+                  onTap: () {
+                    setState(() {
+                      _isRegistering = !_isRegistering;
+                      _errorMessage = null;
+                    });
+                  },
+                  borderRadius: BorderRadius.circular(4),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                    child: Text(
+                      _isRegistering ? 'Log In' : 'Subscribe Now',
+                      style: const TextStyle(
+                        color: AppColors.accentCyan,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+
+            // Collapsible Backend Server Settings
+            Center(
+              child: CollapsibleSettings(
+                serverController: _serverController,
+              ),
+            ),
+          ],
         ),
       ),
     );
