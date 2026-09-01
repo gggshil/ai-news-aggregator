@@ -85,10 +85,21 @@ def send_digest_email(hours: int = 24, top_n: int = 10) -> dict:
 
         subject = f"Daily AI News Digest - {result.introduction.greeting.split('for ')[-1] if 'for ' in result.introduction.greeting else 'Today'}"
 
+        subscribers = repo.get_active_subscribers()
+        recipient_emails = [sub.email for sub in subscribers]
+        
         from app.services.email import MY_EMAIL, APP_PASSWORD
+        if not recipient_emails:
+            logger.info("No registered subscribers found in database. Using default/admin email if available.")
+            if MY_EMAIL:
+                recipient_emails = [MY_EMAIL]
+            else:
+                recipient_emails = ["fakejishil@gmail.com"]
+
         if not MY_EMAIL or not APP_PASSWORD:
             logger.warning("MY_EMAIL or APP_PASSWORD not configured. Printing digest to console and skipping email dispatch.")
             print("\n================== COMPILED DAILY DIGEST ==================")
+            print(f"Intended recipients: {', '.join(recipient_emails)}")
             print(markdown_content)
             print("===========================================================\n")
             digest_ids = [article.digest_id for article in result.articles]
@@ -96,19 +107,27 @@ def send_digest_email(hours: int = 24, top_n: int = 10) -> dict:
             return {
                 "success": True,
                 "subject": subject,
+                "recipients": recipient_emails,
                 "articles_count": len(result.articles),
                 "marked_as_sent": marked_count,
             }
 
-        send_email(subject=subject, body_text=markdown_content, body_html=html_content, recipients=["fakejishil@gmail.com"])
+        logger.info(f"Sending daily digest to {len(recipient_emails)} subscribers: {recipient_emails}")
+        send_email(
+            subject=subject,
+            body_text=markdown_content,
+            body_html=html_content,
+            recipients=recipient_emails,
+        )
 
         digest_ids = [article.digest_id for article in result.articles]
         marked_count = repo.mark_digests_as_sent(digest_ids)
 
-        logger.info(f"Email sent successfully! Marked {marked_count} digests as sent.")
+        logger.info(f"Email sent successfully to {len(recipient_emails)} recipients! Marked {marked_count} digests as sent.")
         return {
             "success": True,
             "subject": subject,
+            "recipients_count": len(recipient_emails),
             "articles_count": len(result.articles),
             "marked_as_sent": marked_count,
         }

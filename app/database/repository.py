@@ -1,3 +1,4 @@
+import uuid
 from datetime import datetime, timedelta, timezone
 from typing import List, Optional, Dict, Any
 from sqlalchemy.orm import Session
@@ -9,6 +10,7 @@ from .models import (
     XaiArticle,
     DeepseekArticle,
     Digest,
+    Subscriber,
 )
 from .connection import get_session
 
@@ -429,3 +431,39 @@ class Repository:
         )
         self.session.commit()
         return updated
+
+    def create_subscriber(
+        self, email: str, password_hash: str
+    ) -> Optional[Subscriber]:
+        existing = (
+            self.session.query(Subscriber)
+            .filter(Subscriber.email.ilike(email.strip()))
+            .first()
+        )
+        if existing:
+            return None
+        subscriber = Subscriber(
+            id=str(uuid.uuid4()),
+            email=email.strip().lower(),
+            password_hash=password_hash,
+            is_active=True,
+            created_at=datetime.now(timezone.utc),
+        )
+        self.session.add(subscriber)
+        self.session.commit()
+        return subscriber
+
+    def get_subscriber_by_email(self, email: str) -> Optional[Subscriber]:
+        return (
+            self.session.query(Subscriber)
+            .filter(Subscriber.email.ilike(email.strip()))
+            .first()
+        )
+
+    def get_active_subscribers(self) -> List[Subscriber]:
+        return (
+            self.session.query(Subscriber)
+            .filter(Subscriber.is_active == True)
+            .all()
+        )
+
