@@ -28,10 +28,10 @@ class _GoogleButtonState extends State<GoogleButton> {
         width: double.infinity,
         height: 48,
         decoration: BoxDecoration(
-          color: _isHovered ? AppColors.surfaceHighlight : AppColors.surfaceElevated,
-          borderRadius: BorderRadius.circular(12),
+          color: _isHovered ? const Color(0xFF161822) : const Color(0xFF10121A),
+          borderRadius: BorderRadius.circular(10),
           border: Border.all(
-            color: _isHovered ? AppColors.borderMedium : AppColors.borderSubtle,
+            color: _isHovered ? const Color(0xFF282B38) : const Color(0xFF1C1F2B),
             width: 1,
           ),
         ),
@@ -42,7 +42,7 @@ class _GoogleButtonState extends State<GoogleButton> {
             foregroundColor: AppColors.textPrimary,
             side: BorderSide.none,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(10),
             ),
             padding: const EdgeInsets.symmetric(horizontal: 16),
           ),
@@ -69,7 +69,7 @@ class _GoogleButtonState extends State<GoogleButton> {
               const Text(
                 'Continue with Google',
                 style: TextStyle(
-                  fontSize: 13,
+                  fontSize: 13.5,
                   fontWeight: FontWeight.w600,
                   color: AppColors.textPrimary,
                   letterSpacing: -0.1,

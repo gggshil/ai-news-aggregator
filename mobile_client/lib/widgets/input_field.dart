@@ -37,13 +37,13 @@ class _InputFieldState extends State<InputField> {
         Text(
           widget.label,
           style: const TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
             color: AppColors.textSecondary,
-            letterSpacing: 0.2,
+            letterSpacing: -0.1,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 7),
         Focus(
           onFocusChange: (focus) {
             setState(() {
@@ -51,16 +51,24 @@ class _InputFieldState extends State<InputField> {
             });
           },
           child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
+            duration: const Duration(milliseconds: 180),
+            height: 48,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(14),
+              color: const Color(0xFF090A0E),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: _isFocused
+                    ? AppColors.brandPrimary
+                    : const Color(0xFF1C1E26),
+                width: _isFocused ? 1.2 : 1.0,
+              ),
               boxShadow: _isFocused
                   ? [
                       BoxShadow(
-                        color: AppColors.primaryIndigo.withValues(alpha: 0.2),
-                        blurRadius: 10,
+                        color: AppColors.brandPrimary.withValues(alpha: 0.12),
+                        blurRadius: 8,
                         spreadRadius: 1,
-                      )
+                      ),
                     ]
                   : [],
             ),
@@ -70,28 +78,30 @@ class _InputFieldState extends State<InputField> {
               keyboardType: widget.keyboardType,
               style: const TextStyle(
                 color: AppColors.textPrimary,
-                fontSize: 15,
+                fontSize: 13.5,
                 fontWeight: FontWeight.w500,
               ),
               decoration: InputDecoration(
                 hintText: widget.placeholder,
                 hintStyle: const TextStyle(
-                  color: AppColors.textPlaceholder,
-                  fontSize: 14,
+                  color: Color(0xFF424652),
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w400,
                 ),
-                filled: true,
-                fillColor: AppColors.surfaceInput,
+                isDense: true,
+                filled: false,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
                 prefixIcon: Icon(
                   widget.prefixIcon,
-                  color: _isFocused ? AppColors.accentCyan : AppColors.textMuted,
-                  size: 20,
+                  color: _isFocused ? AppColors.brandPrimary : const Color(0xFF5A5E6B),
+                  size: 17,
                 ),
                 suffixIcon: widget.isPassword
                     ? IconButton(
                         icon: Icon(
                           _obscureText ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                          color: AppColors.textMuted,
-                          size: 20,
+                          color: const Color(0xFF5A5E6B),
+                          size: 17,
                         ),
                         onPressed: () {
                           setState(() {
@@ -100,27 +110,11 @@ class _InputFieldState extends State<InputField> {
                         },
                       )
                     : null,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: const BorderSide(color: AppColors.borderSubtle, width: 1),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: const BorderSide(color: AppColors.borderSubtle, width: 1),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: const BorderSide(color: AppColors.primaryIndigo, width: 1.5),
-                ),
-                errorBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: const BorderSide(color: AppColors.error, width: 1),
-                ),
-                focusedErrorBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: const BorderSide(color: AppColors.error, width: 1.5),
-                ),
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                errorBorder: InputBorder.none,
+                focusedErrorBorder: InputBorder.none,
               ),
               validator: widget.validator,
             ),

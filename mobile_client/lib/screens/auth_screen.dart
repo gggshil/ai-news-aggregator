@@ -85,18 +85,18 @@ class _AuthScreenState extends State<AuthScreen> {
     await showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.surfaceElevated,
+        backgroundColor: const Color(0xFF101218),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: const BorderSide(color: AppColors.borderMedium),
+          borderRadius: BorderRadius.circular(14),
+          side: const BorderSide(color: Color(0xFF1E212D)),
         ),
         title: const Row(
           children: [
-            Icon(Icons.terminal_rounded, size: 22, color: AppColors.brandPrimary),
-            SizedBox(width: 10),
+            Icon(Icons.terminal_rounded, size: 20, color: AppColors.brandPrimary),
+            SizedBox(width: 8),
             Text(
               'Google Account Verification',
-              style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600),
+              style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w600),
             ),
           ],
         ),
@@ -105,29 +105,29 @@ class _AuthScreenState extends State<AuthScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'Enter your Google email address to authenticate directly for daily briefing delivery:',
-              style: TextStyle(color: AppColors.textSecondary, fontSize: 13, height: 1.4),
+              'Enter your Google email address to receive automated daily briefings directly to your inbox:',
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5, height: 1.4),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 14),
             TextField(
               controller: googleEmailController,
               keyboardType: TextInputType.emailAddress,
-              style: const TextStyle(color: Colors.white, fontSize: 14),
+              style: const TextStyle(color: Colors.white, fontSize: 13.5),
               decoration: InputDecoration(
                 hintText: 'you@gmail.com',
-                hintStyle: const TextStyle(color: AppColors.textTertiary),
+                hintStyle: const TextStyle(color: Color(0xFF4B4F56), fontSize: 13.5),
                 filled: true,
-                fillColor: AppColors.surfaceInput,
+                fillColor: const Color(0xFF090A0E),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: AppColors.borderSubtle),
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: const BorderSide(color: Color(0xFF1E212D)),
                 ),
                 focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(8),
                   borderSide: const BorderSide(color: AppColors.brandPrimary),
                 ),
-                prefixIcon: const Icon(Icons.mail_outline_rounded, color: AppColors.textSecondary, size: 18),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                prefixIcon: const Icon(Icons.mail_outline_rounded, color: Color(0xFF5A5E6B), size: 17),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               ),
             ),
           ],
@@ -135,13 +135,14 @@ class _AuthScreenState extends State<AuthScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel', style: TextStyle(color: AppColors.textMuted)),
+            child: const Text('Cancel', style: TextStyle(color: Color(0xFF8A8F98), fontSize: 13)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.brandPrimary,
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             ),
             onPressed: () {
               final email = googleEmailController.text.trim();
@@ -150,7 +151,7 @@ class _AuthScreenState extends State<AuthScreen> {
                 _processGoogleAuth(email);
               }
             },
-            child: const Text('Continue'),
+            child: const Text('Continue', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
           ),
         ],
       ),
@@ -231,10 +232,10 @@ class _AuthScreenState extends State<AuthScreen> {
 
   String _formatErrorMessage(String raw) {
     if (raw.contains('MissingPluginException') || raw.contains('PlatformException')) {
-      return "Google Sign-In is unavailable in this browser session. Please enter your email.";
+      return "Google Sign-In is currently unavailable in this environment. Please use email and password.";
     }
     if (raw.contains('Could not connect')) {
-      return "Could not connect to backend. Please verify your server status.";
+      return "Could not connect to the backend server. Please check your connection.";
     }
     return raw;
   }
@@ -245,21 +246,15 @@ class _AuthScreenState extends State<AuthScreen> {
       backgroundColor: AppColors.bgDark,
       body: Stack(
         children: [
-          // Subtly textured background grid/canvas
           Positioned.fill(
             child: Container(
               color: AppColors.bgDark,
             ),
           ),
-
-          // Main Responsive Layout
           SafeArea(
             child: Column(
               children: [
-                // Top Minimal Header Bar
                 _buildTopBar(),
-
-                // Scrollable Body
                 Expanded(
                   child: LayoutBuilder(
                     builder: (context, constraints) {
@@ -277,13 +272,13 @@ class _AuthScreenState extends State<AuthScreen> {
                                 ? Row(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      // Left Column: Editorial Hero & Scored Digest Preview
+                                      // Left Column (Preserved Exactly)
                                       Expanded(
                                         flex: 12,
                                         child: _buildEditorialHero(),
                                       ),
                                       const SizedBox(width: 72),
-                                      // Right Column: Auth Card
+                                      // Right Column: Redesigned Subscription Panel
                                       Expanded(
                                         flex: 9,
                                         child: _buildAuthTerminal(),
@@ -355,12 +350,10 @@ class _AuthScreenState extends State<AuthScreen> {
     );
   }
 
-
   Widget _buildEditorialHero({bool isCompact = false}) {
     return Column(
       crossAxisAlignment: isCompact ? CrossAxisAlignment.center : CrossAxisAlignment.start,
       children: [
-        // Category pill
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
           decoration: BoxDecoration(
@@ -379,8 +372,6 @@ class _AuthScreenState extends State<AuthScreen> {
           ),
         ),
         const SizedBox(height: 20),
-
-        // Headline (Linear / Apple style)
         Text(
           'The daily AI briefing for builders and researchers.',
           textAlign: isCompact ? TextAlign.center : TextAlign.left,
@@ -393,8 +384,6 @@ class _AuthScreenState extends State<AuthScreen> {
           ),
         ),
         const SizedBox(height: 16),
-
-        // Narrative Copy
         Text(
           'Automated multi-agent synthesis across OpenAI, Anthropic, DeepSeek, Google, and arXiv. Curated for technical depth without marketing noise, delivered directly to your inbox.',
           textAlign: isCompact ? TextAlign.center : TextAlign.left,
@@ -406,8 +395,6 @@ class _AuthScreenState extends State<AuthScreen> {
           ),
         ),
         const SizedBox(height: 32),
-
-        // Live Feed Sample Digest Card (Raycast/Linear preview)
         if (!isCompact) ...[
           Container(
             padding: const EdgeInsets.all(20),
@@ -478,8 +465,6 @@ class _AuthScreenState extends State<AuthScreen> {
           ),
           const SizedBox(height: 24),
         ],
-
-        // Source Ticker Row
         Wrap(
           spacing: 8,
           runSpacing: 8,
@@ -517,50 +502,56 @@ class _AuthScreenState extends State<AuthScreen> {
     );
   }
 
+  /// -------------------------------------------------------------------------
+  /// REDESIGNED RIGHT-SIDE SUBSCRIPTION / AUTHENTICATION PANEL
+  /// -------------------------------------------------------------------------
   Widget _buildAuthTerminal() {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: const Color(0xFF0D0F14),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.borderSubtle, width: 1),
+        border: Border.all(color: const Color(0xFF181A22), width: 1),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.4),
-            blurRadius: 24,
-            offset: const Offset(0, 8),
+            color: Colors.black.withValues(alpha: 0.3),
+            blurRadius: 20,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
-      padding: const EdgeInsets.all(28),
+      padding: const EdgeInsets.all(24),
       child: Form(
         key: _formKey,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Title & Subtitle
+            // Card Title (21px bold, tight tracking, crisp white)
             Text(
               _isRegistering ? 'Get your daily briefing' : 'Welcome back',
               style: const TextStyle(
-                fontSize: 20,
+                fontSize: 21,
                 fontWeight: FontWeight.w700,
-                color: AppColors.textPrimary,
+                color: Colors.white,
                 letterSpacing: -0.4,
               ),
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 7),
+
+            // Card Subtitle (13px, muted gray, comfortable line height)
             Text(
               _isRegistering
                   ? 'Enter your Gmail to start receiving automated AI digests.'
-                  : 'Log in to manage your AI delivery preferences.',
+                  : 'Enter your credentials to manage your daily briefing.',
               style: const TextStyle(
                 fontSize: 13,
-                color: AppColors.textSecondary,
+                color: Color(0xFF8A8F98),
                 height: 1.4,
+                letterSpacing: -0.1,
               ),
             ),
             const SizedBox(height: 24),
 
-            // Error Alert
+            // Compact Error Alert
             if (_errorMessage != null)
               ErrorAlert(
                 message: _errorMessage!,
@@ -589,7 +580,7 @@ class _AuthScreenState extends State<AuthScreen> {
             // Password Input
             InputField(
               label: 'Password',
-              placeholder: '••••••••',
+              placeholder: 'Enter your password',
               controller: _passwordController,
               prefixIcon: Icons.lock_outline_rounded,
               isPassword: true,
@@ -603,55 +594,58 @@ class _AuthScreenState extends State<AuthScreen> {
                 return null;
               },
             ),
-            const SizedBox(height: 22),
+            const SizedBox(height: 20),
 
-            // Primary Button
+            // Primary CTA Button (48px, subtle indigo gradient, arrow transition)
             PrimaryButton(
               text: _isRegistering ? 'Subscribe to AI Digest' : 'Sign In',
               isLoading: _isLoading,
+              showArrow: true,
               onPressed: _handleSubmit,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 18),
 
-            // Subtle Divider
+            // Minimal Restrained Divider
             const Row(
               children: [
-                Expanded(child: Divider(color: AppColors.borderHairline)),
+                Expanded(child: Divider(color: Color(0xFF161822), height: 1)),
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: 12.0),
                   child: Text(
                     'OR',
                     style: TextStyle(
-                      color: AppColors.textTertiary,
+                      color: Color(0xFF4B4F56),
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
+                      letterSpacing: 0.6,
                     ),
                   ),
                 ),
-                Expanded(child: Divider(color: AppColors.borderHairline)),
+                Expanded(child: Divider(color: Color(0xFF161822), height: 1)),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 18),
 
-            // Google Button
+            // Google Button (Dark surface, matching 48px height, 10px radius)
             GoogleButton(
               isLoading: _isLoading,
               onPressed: _handleGoogleSignIn,
             ),
             const SizedBox(height: 20),
 
-            // Toggle Between Sign Up and Log In
+            // Login / Toggle Footer
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
                   _isRegistering ? 'Already subscribed?' : "Don't have an account?",
                   style: const TextStyle(
-                    color: AppColors.textMuted,
+                    color: Color(0xFF8A8F98),
                     fontSize: 13,
+                    letterSpacing: -0.1,
                   ),
                 ),
-                const SizedBox(width: 4),
+                const SizedBox(width: 6),
                 InkWell(
                   onTap: () {
                     setState(() {
@@ -665,22 +659,21 @@ class _AuthScreenState extends State<AuthScreen> {
                     child: Text(
                       _isRegistering ? 'Sign In' : 'Subscribe Now',
                       style: const TextStyle(
-                        color: AppColors.textPrimary,
+                        color: Color(0xFF6875E8),
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
+                        letterSpacing: -0.1,
                       ),
                     ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 20),
 
-            // Collapsible Server Settings
-            Center(
-              child: CollapsibleSettings(
-                serverController: _serverController,
-              ),
+            // Backend Server Settings (Clean developer control with hairline divider)
+            CollapsibleSettings(
+              serverController: _serverController,
             ),
           ],
         ),
