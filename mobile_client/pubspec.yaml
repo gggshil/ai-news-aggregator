@@ -63,6 +63,11 @@ flutter:
 
   assets:
     - assets/images/
+    - assets/images/navbar_logo.png
+    - assets/images/app_logo.png
+    - assets/images/logo with no bg.png
+    - assets/images/logo with BG.png
+
 
 
   # An image asset can refer to one or more resolution-specific "variants", see

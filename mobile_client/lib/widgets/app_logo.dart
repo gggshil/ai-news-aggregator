@@ -8,7 +8,7 @@ class AppLogo extends StatelessWidget {
 
   const AppLogo({
     super.key,
-    this.size = 28,
+    this.size = 30,
     this.showBadge = true,
     this.useFullLogoWithBg = false,
   });
@@ -23,36 +23,29 @@ class AppLogo extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        // Logo Graphic Container (attempts custom PNG, falls back to geometric icon)
-        ClipRRect(
-          borderRadius: BorderRadius.circular(size * 0.28),
-          child: Image.asset(
-            assetPath,
-            width: size,
-            height: size,
-            fit: BoxFit.contain,
-            errorBuilder: (context, error, stackTrace) {
-              return Container(
-                width: size,
-                height: size,
-                decoration: BoxDecoration(
-                  color: AppColors.surfaceElevated,
-                  borderRadius: BorderRadius.circular(size * 0.28),
-                  border: Border.all(
-                    color: AppColors.borderMedium,
-                    width: 1,
-                  ),
-                ),
-                child: Center(
-                  child: Icon(
-                    Icons.auto_awesome,
-                    color: AppColors.brandPrimary,
-                    size: size * 0.54,
-                  ),
-                ),
-              );
-            },
-          ),
+        // Transparent BG-less custom logo image
+        Image.asset(
+          assetPath,
+          width: size,
+          height: size,
+          fit: BoxFit.contain,
+          errorBuilder: (context, error, stackTrace) {
+            // Secondary attempt with original filename
+            return Image.asset(
+              'assets/images/logo with no bg.png',
+              width: size,
+              height: size,
+              fit: BoxFit.contain,
+              errorBuilder: (ctx, err, st) {
+                // Subtle vector fallback if assets aren't yet loaded by flutter engine
+                return Icon(
+                  Icons.auto_awesome,
+                  color: AppColors.brandPrimary,
+                  size: size * 0.8,
+                );
+              },
+            );
+          },
         ),
         const SizedBox(width: 10),
         Text(
