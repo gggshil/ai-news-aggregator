@@ -2,7 +2,6 @@ import http.server
 import socketserver
 import logging
 from api.auth import handler as AuthHandler
-from api.cron import handler as CronHandler
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
@@ -15,8 +14,10 @@ class RouterHandler(http.server.BaseHTTPRequestHandler):
         if self.path.startswith("/api/auth") or self.path.startswith("/auth") or self.path == "/":
             AuthHandler(self.request, self.client_address, self.server)
         elif self.path.startswith("/api/cron") or self.path.startswith("/cron"):
+            from api.cron import handler as CronHandler
             CronHandler(self.request, self.client_address, self.server)
         else:
+
             self.send_response(404)
             self.send_header("Content-Type", "application/json")
             self.end_headers()
