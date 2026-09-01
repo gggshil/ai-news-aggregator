@@ -5,7 +5,6 @@ import '../theme/app_theme.dart';
 import '../widgets/app_logo.dart';
 import '../widgets/collapsible_settings.dart';
 import '../widgets/error_alert.dart';
-import '../widgets/feature_item.dart';
 import '../widgets/google_button.dart';
 import '../widgets/input_field.dart';
 import '../widgets/primary_button.dart';
@@ -59,9 +58,9 @@ class _AuthScreenState extends State<AuthScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Verified Google Account: $email'),
-          backgroundColor: AppColors.success,
+          backgroundColor: AppColors.statusLive,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
       );
 
@@ -88,16 +87,16 @@ class _AuthScreenState extends State<AuthScreen> {
       builder: (ctx) => AlertDialog(
         backgroundColor: AppColors.surfaceElevated,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-          side: const BorderSide(color: AppColors.borderSubtle),
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: AppColors.borderMedium),
         ),
         title: const Row(
           children: [
-            Icon(Icons.g_mobiledata_rounded, size: 36, color: Color(0xFFEA4335)),
-            SizedBox(width: 8),
+            Icon(Icons.terminal_rounded, size: 22, color: AppColors.brandPrimary),
+            SizedBox(width: 10),
             Text(
-              'Sign in with Google',
-              style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+              'Google Account Verification',
+              style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600),
             ),
           ],
         ),
@@ -106,28 +105,29 @@ class _AuthScreenState extends State<AuthScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'Confirm your Google email address to receive daily AI digests without needing a password:',
+              'Enter your Google email address to authenticate directly for daily briefing delivery:',
               style: TextStyle(color: AppColors.textSecondary, fontSize: 13, height: 1.4),
             ),
             const SizedBox(height: 16),
             TextField(
               controller: googleEmailController,
               keyboardType: TextInputType.emailAddress,
-              style: const TextStyle(color: Colors.white),
+              style: const TextStyle(color: Colors.white, fontSize: 14),
               decoration: InputDecoration(
-                hintText: 'yourname@gmail.com',
-                hintStyle: const TextStyle(color: AppColors.textPlaceholder),
+                hintText: 'you@gmail.com',
+                hintStyle: const TextStyle(color: AppColors.textTertiary),
                 filled: true,
                 fillColor: AppColors.surfaceInput,
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(10),
                   borderSide: const BorderSide(color: AppColors.borderSubtle),
                 ),
                 focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: AppColors.primaryIndigo),
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: const BorderSide(color: AppColors.brandPrimary),
                 ),
-                prefixIcon: const Icon(Icons.mail_outline_rounded, color: AppColors.accentCyan),
+                prefixIcon: const Icon(Icons.mail_outline_rounded, color: AppColors.textSecondary, size: 18),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               ),
             ),
           ],
@@ -139,9 +139,9 @@ class _AuthScreenState extends State<AuthScreen> {
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primaryIndigo,
+              backgroundColor: AppColors.brandPrimary,
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             ),
             onPressed: () {
               final email = googleEmailController.text.trim();
@@ -210,9 +210,9 @@ class _AuthScreenState extends State<AuthScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(result.message),
-          backgroundColor: AppColors.success,
+          backgroundColor: AppColors.statusLive,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
       );
 
@@ -231,10 +231,10 @@ class _AuthScreenState extends State<AuthScreen> {
 
   String _formatErrorMessage(String raw) {
     if (raw.contains('MissingPluginException') || raw.contains('PlatformException')) {
-      return "Google Sign-In isn't available in this environment. Please use email and password.";
+      return "Google Sign-In is unavailable in this browser session. Please enter your email.";
     }
     if (raw.contains('Could not connect')) {
-      return "Could not connect to the backend server. Please verify the server is running.";
+      return "Could not connect to backend. Please verify your server status.";
     }
     return raw;
   }
@@ -245,89 +245,65 @@ class _AuthScreenState extends State<AuthScreen> {
       backgroundColor: AppColors.bgDark,
       body: Stack(
         children: [
-          // Subtle atmospheric background gradient
+          // Subtly textured background grid/canvas
           Positioned.fill(
             child: Container(
-              decoration: const BoxDecoration(
-                gradient: RadialGradient(
-                  center: Alignment(-0.6, -0.4),
-                  radius: 1.2,
-                  colors: [
-                    Color(0x184F46E5),
-                    Color(0x0C0D1320),
-                    Colors.transparent,
-                  ],
-                  stops: [0.0, 0.5, 1.0],
-                ),
-              ),
-            ),
-          ),
-          Positioned.fill(
-            child: Container(
-              decoration: const BoxDecoration(
-                gradient: RadialGradient(
-                  center: Alignment(0.8, 0.6),
-                  radius: 1.0,
-                  colors: [
-                    Color(0x147C3AED),
-                    Colors.transparent,
-                  ],
-                  stops: [0.0, 0.8],
-                ),
-              ),
+              color: AppColors.bgDark,
             ),
           ),
 
-          // Main Responsive Content
+          // Main Responsive Layout
           SafeArea(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final isDesktop = constraints.maxWidth >= 960;
+            child: Column(
+              children: [
+                // Top Minimal Header Bar
+                _buildTopBar(),
 
-                if (isDesktop) {
-                  return Center(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 36),
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 1140),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            // Left Hero Area
-                            Expanded(
-                              flex: 11,
-                              child: _buildHeroSection(isDesktop: true),
-                            ),
-                            const SizedBox(width: 64),
-                            // Right Auth Card
-                            Expanded(
-                              flex: 10,
-                              child: _buildAuthCard(),
-                            ),
-                          ],
+                // Scrollable Body
+                Expanded(
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final isDesktop = constraints.maxWidth >= 980;
+
+                      return Center(
+                        child: SingleChildScrollView(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: isDesktop ? 56 : 20,
+                            vertical: isDesktop ? 36 : 24,
+                          ),
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 1160),
+                            child: isDesktop
+                                ? Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      // Left Column: Editorial Hero & Scored Digest Preview
+                                      Expanded(
+                                        flex: 12,
+                                        child: _buildEditorialHero(),
+                                      ),
+                                      const SizedBox(width: 72),
+                                      // Right Column: Auth Card
+                                      Expanded(
+                                        flex: 9,
+                                        child: _buildAuthTerminal(),
+                                      ),
+                                    ],
+                                  )
+                                : Column(
+                                    children: [
+                                      _buildEditorialHero(isCompact: true),
+                                      const SizedBox(height: 36),
+                                      _buildAuthTerminal(),
+                                    ],
+                                  ),
+                          ),
                         ),
-                      ),
-                    ),
-                  );
-                } else {
-                  // Tablet & Mobile
-                  return Center(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 480),
-                        child: Column(
-                          children: [
-                            _buildHeroSection(isDesktop: false),
-                            const SizedBox(height: 32),
-                            _buildAuthCard(),
-                          ],
-                        ),
-                      ),
-                    ),
-                  );
-                }
-              },
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -335,98 +311,233 @@ class _AuthScreenState extends State<AuthScreen> {
     );
   }
 
-  Widget _buildHeroSection({required bool isDesktop}) {
-    return Column(
-      crossAxisAlignment: isDesktop ? CrossAxisAlignment.start : CrossAxisAlignment.center,
-      children: [
-        // App Logo & Brand
-        const AppLogo(
-          size: 48,
-          showText: true,
-          subtitle: 'Autonomous Intelligence Digest',
+  Widget _buildTopBar() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
+      decoration: const BoxDecoration(
+        border: Border(
+          bottom: BorderSide(color: AppColors.borderHairline, width: 1),
         ),
-        const SizedBox(height: 32),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          const AppLogo(size: 26, showBadge: true),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: AppColors.surfaceElevated,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: AppColors.borderHairline),
+            ),
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.circle, size: 7, color: AppColors.statusLive),
+                SizedBox(width: 6),
+                Text(
+                  'DAILY INGESTION LIVE',
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.5,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
-        // Hero Headline
+  Widget _buildEditorialHero({bool isCompact = false}) {
+    return Column(
+      crossAxisAlignment: isCompact ? CrossAxisAlignment.center : CrossAxisAlignment.start,
+      children: [
+        // Category pill
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          decoration: BoxDecoration(
+            color: AppColors.surfaceElevated,
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(color: AppColors.borderHairline),
+          ),
+          child: const Text(
+            'AUTONOMOUS RESEARCH BRIEFING',
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textMuted,
+              letterSpacing: 0.8,
+            ),
+          ),
+        ),
+        const SizedBox(height: 20),
+
+        // Headline (Linear / Apple style)
         Text(
-          'AI intelligence,\ndelivered every morning.',
-          textAlign: isDesktop ? TextAlign.left : TextAlign.center,
+          'The daily AI briefing for builders and researchers.',
+          textAlign: isCompact ? TextAlign.center : TextAlign.left,
           style: TextStyle(
-            fontSize: isDesktop ? 38 : 28,
+            fontSize: isCompact ? 30 : 42,
             fontWeight: FontWeight.w800,
             color: AppColors.textPrimary,
-            letterSpacing: -1.0,
-            height: 1.15,
+            letterSpacing: -1.2,
+            height: 1.12,
           ),
         ),
         const SizedBox(height: 16),
 
-        // Supporting Subtext
+        // Narrative Copy
         Text(
-          'Stay ahead of the AI curve with a daily intelligence digest curated from OpenAI, Anthropic, Gemini, DeepSeek, and leading research papers.',
-          textAlign: isDesktop ? TextAlign.left : TextAlign.center,
+          'Automated multi-agent synthesis across OpenAI, Anthropic, DeepSeek, Google, and arXiv. Curated for technical depth without marketing noise, delivered directly to your inbox.',
+          textAlign: isCompact ? TextAlign.center : TextAlign.left,
           style: TextStyle(
-            fontSize: isDesktop ? 16 : 14,
+            fontSize: isCompact ? 14 : 16,
             color: AppColors.textSecondary,
             height: 1.5,
+            letterSpacing: -0.1,
           ),
         ),
         const SizedBox(height: 32),
 
-        // Feature Highlights
-        if (isDesktop) ...[
-          const FeatureItem(
-            icon: Icons.psychology_outlined,
-            title: 'Multi-Agent Curation',
-            description: 'Intelligent GPT-4o agents extract key breakthroughs and rank top 10 stories.',
+        // Live Feed Sample Digest Card (Raycast/Linear preview)
+        if (!isCompact) ...[
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: AppColors.borderHairline),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: AppColors.brandPrimary,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        const Text(
+                          'SAMPLE DIGEST ITEM  •  SCORED 9.8 / 10',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.6,
+                            color: AppColors.textMuted,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const Text(
+                      'TODAY',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textTertiary,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  'DeepSeek-V3 MoE Architecture & Sparse Computation Breakdown',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
+                    letterSpacing: -0.2,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                const Text(
+                  'Analysis of multi-head latent attention (MLA) and multi-token prediction (MTP) yielding unprecedented inference efficiency...',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: AppColors.textSecondary,
+                    height: 1.45,
+                  ),
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 18),
-          const FeatureItem(
-            icon: Icons.mark_email_read_outlined,
-            title: 'Direct to Your Gmail',
-            description: 'Automated 24/7 delivery with personalized greeting tailored to your email.',
-          ),
-          const SizedBox(height: 18),
-          const FeatureItem(
-            icon: Icons.verified_user_outlined,
-            title: 'Zero Noise & Hallucinations',
-            description: 'Direct summaries of official releases, research logs, and video transcripts.',
-          ),
+          const SizedBox(height: 24),
         ],
+
+        // Source Ticker Row
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          alignment: isCompact ? WrapAlignment.center : WrapAlignment.start,
+          children: [
+            _buildSourceTag('OpenAI'),
+            _buildSourceTag('Anthropic'),
+            _buildSourceTag('DeepSeek'),
+            _buildSourceTag('Google Gemini'),
+            _buildSourceTag('xAI'),
+            _buildSourceTag('arXiv Papers'),
+          ],
+        ),
       ],
     );
   }
 
-  Widget _buildAuthCard() {
+  Widget _buildSourceTag(String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceInput,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.borderHairline),
+      ),
+      child: Text(
+        label,
+        style: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+          color: AppColors.textSecondary,
+          letterSpacing: -0.1,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAuthTerminal() {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.surfaceCard.withValues(alpha: 0.85),
-        borderRadius: BorderRadius.circular(20),
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.borderSubtle, width: 1),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.35),
-            blurRadius: 32,
-            offset: const Offset(0, 8),
-          ),
-          BoxShadow(
-            color: AppColors.primaryIndigo.withValues(alpha: 0.08),
+            color: Colors.black.withValues(alpha: 0.4),
             blurRadius: 24,
-            spreadRadius: 1,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
-      padding: const EdgeInsets.all(32),
+      padding: const EdgeInsets.all(28),
       child: Form(
         key: _formKey,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Card Title & Subtitle
+            // Title & Subtitle
             Text(
-              _isRegistering ? 'Subscribe to AI News' : 'Welcome back',
+              _isRegistering ? 'Get your daily briefing' : 'Welcome back',
               style: const TextStyle(
-                fontSize: 22,
+                fontSize: 20,
                 fontWeight: FontWeight.w700,
                 color: AppColors.textPrimary,
                 letterSpacing: -0.4,
@@ -435,8 +546,8 @@ class _AuthScreenState extends State<AuthScreen> {
             const SizedBox(height: 6),
             Text(
               _isRegistering
-                  ? 'Get the most important AI updates delivered to your inbox.'
-                  : 'Enter your credentials to manage your subscription.',
+                  ? 'Enter your Gmail to start receiving automated AI digests.'
+                  : 'Log in to manage your AI delivery preferences.',
               style: const TextStyle(
                 fontSize: 13,
                 color: AppColors.textSecondary,
@@ -445,7 +556,7 @@ class _AuthScreenState extends State<AuthScreen> {
             ),
             const SizedBox(height: 24),
 
-            // Error Alert (Dismissible)
+            // Error Alert
             if (_errorMessage != null)
               ErrorAlert(
                 message: _errorMessage!,
@@ -454,7 +565,7 @@ class _AuthScreenState extends State<AuthScreen> {
 
             // Email Address Input
             InputField(
-              label: 'Email address',
+              label: 'Gmail address',
               placeholder: 'you@gmail.com',
               controller: _emailController,
               prefixIcon: Icons.mail_outline_rounded,
@@ -469,12 +580,12 @@ class _AuthScreenState extends State<AuthScreen> {
                 return null;
               },
             ),
-            const SizedBox(height: 18),
+            const SizedBox(height: 16),
 
             // Password Input
             InputField(
               label: 'Password',
-              placeholder: 'Enter your password',
+              placeholder: '••••••••',
               controller: _passwordController,
               prefixIcon: Icons.lock_outline_rounded,
               isPassword: true,
@@ -488,43 +599,42 @@ class _AuthScreenState extends State<AuthScreen> {
                 return null;
               },
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 22),
 
-            // Primary Submit Button
+            // Primary Button
             PrimaryButton(
-              text: _isRegistering ? 'Subscribe for AI News' : 'Log In',
+              text: _isRegistering ? 'Subscribe to AI Digest' : 'Sign In',
               isLoading: _isLoading,
               onPressed: _handleSubmit,
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
 
-            // OR Divider
+            // Subtle Divider
             const Row(
               children: [
-                Expanded(child: Divider(color: AppColors.borderSubtle)),
+                Expanded(child: Divider(color: AppColors.borderHairline)),
                 Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 14.0),
+                  padding: EdgeInsets.symmetric(horizontal: 12.0),
                   child: Text(
                     'OR',
                     style: TextStyle(
-                      color: AppColors.textMuted,
+                      color: AppColors.textTertiary,
                       fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.8,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
-                Expanded(child: Divider(color: AppColors.borderSubtle)),
+                Expanded(child: Divider(color: AppColors.borderHairline)),
               ],
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
 
-            // Google Sign-In Button
+            // Google Button
             GoogleButton(
               isLoading: _isLoading,
               onPressed: _handleGoogleSignIn,
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
 
             // Toggle Between Sign Up and Log In
             Row(
@@ -533,7 +643,7 @@ class _AuthScreenState extends State<AuthScreen> {
                 Text(
                   _isRegistering ? 'Already subscribed?' : "Don't have an account?",
                   style: const TextStyle(
-                    color: AppColors.textSecondary,
+                    color: AppColors.textMuted,
                     fontSize: 13,
                   ),
                 ),
@@ -549,20 +659,20 @@ class _AuthScreenState extends State<AuthScreen> {
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
                     child: Text(
-                      _isRegistering ? 'Log In' : 'Subscribe Now',
+                      _isRegistering ? 'Sign In' : 'Subscribe Now',
                       style: const TextStyle(
-                        color: AppColors.accentCyan,
+                        color: AppColors.textPrimary,
                         fontSize: 13,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
 
-            // Collapsible Backend Server Settings
+            // Collapsible Server Settings
             Center(
               child: CollapsibleSettings(
                 serverController: _serverController,

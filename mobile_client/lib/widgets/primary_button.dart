@@ -28,20 +28,25 @@ class _PrimaryButtonState extends State<PrimaryButton> {
       onEnter: (_) => setState(() => _isHovered = true),
       onExit: (_) => setState(() => _isHovered = false),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
+        duration: const Duration(milliseconds: 150),
         width: double.infinity,
-        height: 52,
+        height: 48,
         decoration: BoxDecoration(
-          gradient: AppColors.primaryGradient,
-          borderRadius: BorderRadius.circular(14),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.primaryIndigo.withValues(alpha: _isHovered ? 0.45 : 0.25),
-              blurRadius: _isHovered ? 20 : 12,
-              spreadRadius: _isHovered ? 2 : 0,
-              offset: const Offset(0, 4),
-            ),
-          ],
+          color: _isHovered ? AppColors.brandHover : AppColors.brandPrimary,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: Colors.white.withValues(alpha: 0.15),
+            width: 1,
+          ),
+          boxShadow: _isHovered
+              ? [
+                  BoxShadow(
+                    color: AppColors.brandPrimary.withValues(alpha: 0.25),
+                    blurRadius: 16,
+                    offset: const Offset(0, 4),
+                  ),
+                ]
+              : [],
         ),
         child: ElevatedButton(
           onPressed: widget.isLoading ? null : widget.onPressed,
@@ -50,16 +55,16 @@ class _PrimaryButtonState extends State<PrimaryButton> {
             shadowColor: Colors.transparent,
             foregroundColor: Colors.white,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(12),
             ),
-            padding: const EdgeInsets.symmetric(horizontal: 24),
+            padding: const EdgeInsets.symmetric(horizontal: 20),
           ),
           child: widget.isLoading
               ? const SizedBox(
-                  width: 22,
-                  height: 22,
+                  width: 20,
+                  height: 20,
                   child: CircularProgressIndicator(
-                    strokeWidth: 2.5,
+                    strokeWidth: 2,
                     valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                   ),
                 )
@@ -69,18 +74,18 @@ class _PrimaryButtonState extends State<PrimaryButton> {
                     Text(
                       widget.text,
                       style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 0.2,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: -0.1,
                         color: Colors.white,
                       ),
                     ),
                     if (widget.icon != null) ...[
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 6),
                       AnimatedSlide(
-                        duration: const Duration(milliseconds: 180),
-                        offset: _isHovered ? const Offset(0.2, 0) : Offset.zero,
-                        child: Icon(widget.icon, size: 18, color: Colors.white),
+                        duration: const Duration(milliseconds: 150),
+                        offset: _isHovered ? const Offset(0.15, 0) : Offset.zero,
+                        child: Icon(widget.icon, size: 16, color: Colors.white),
                       ),
                     ],
                   ],

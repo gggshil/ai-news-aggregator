@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
 
 class GoogleButton extends StatefulWidget {
   final VoidCallback? onPressed;
@@ -23,60 +24,54 @@ class _GoogleButtonState extends State<GoogleButton> {
       onEnter: (_) => setState(() => _isHovered = true),
       onExit: (_) => setState(() => _isHovered = false),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
+        duration: const Duration(milliseconds: 150),
         width: double.infinity,
-        height: 50,
+        height: 48,
         decoration: BoxDecoration(
-          color: _isHovered ? const Color(0xFFF1F5F9) : Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.15),
-              blurRadius: _isHovered ? 12 : 6,
-              offset: const Offset(0, 2),
-            ),
-          ],
+          color: _isHovered ? AppColors.surfaceHighlight : AppColors.surfaceElevated,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: _isHovered ? AppColors.borderMedium : AppColors.borderSubtle,
+            width: 1,
+          ),
         ),
         child: OutlinedButton(
           onPressed: widget.isLoading ? null : widget.onPressed,
           style: OutlinedButton.styleFrom(
             backgroundColor: Colors.transparent,
-            foregroundColor: const Color(0xFF1E293B),
+            foregroundColor: AppColors.textPrimary,
             side: BorderSide.none,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(12),
             ),
             padding: const EdgeInsets.symmetric(horizontal: 16),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // High-resolution Google "G" icon badge
               Container(
-                width: 22,
-                height: 22,
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                ),
+                width: 18,
+                height: 18,
+                decoration: const BoxDecoration(shape: BoxShape.circle),
                 child: Center(
                   child: Text(
                     'G',
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: 14,
                       fontWeight: FontWeight.w900,
-                      color: const Color(0xFF4285F4),
+                      color: AppColors.brandCyan,
                       fontFamily: Theme.of(context).textTheme.bodyLarge?.fontFamily,
                     ),
                   ),
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 8),
               const Text(
                 'Continue with Google',
                 style: TextStyle(
-                  fontSize: 15,
+                  fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF1E293B),
+                  color: AppColors.textPrimary,
                   letterSpacing: -0.1,
                 ),
               ),
