@@ -27,7 +27,7 @@ class DashboardScreen extends StatelessWidget {
             Icon(Icons.hub_outlined, color: AppColors.accentCyan, size: 22),
             SizedBox(width: 10),
             Text(
-              'AI News Hub',
+              'AI News Aggregator',
               style: TextStyle(
                 fontWeight: FontWeight.w700,
                 fontSize: 18,
@@ -35,6 +35,7 @@ class DashboardScreen extends StatelessWidget {
                 letterSpacing: -0.3,
               ),
             ),
+
           ],
         ),
         actions: [

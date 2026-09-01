@@ -353,118 +353,133 @@ class _AuthScreenState extends State<AuthScreen> {
   Widget _buildEditorialHero({bool isCompact = false}) {
     return Column(
       crossAxisAlignment: isCompact ? CrossAxisAlignment.center : CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-          decoration: BoxDecoration(
-            color: AppColors.surfaceElevated,
-            borderRadius: BorderRadius.circular(6),
-            border: Border.all(color: AppColors.borderHairline),
-          ),
-          child: const Text(
-            'AUTONOMOUS RESEARCH BRIEFING',
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-              color: AppColors.textMuted,
-              letterSpacing: 0.8,
+        Column(
+          crossAxisAlignment: isCompact ? CrossAxisAlignment.center : CrossAxisAlignment.start,
+          children: [
+            // Category pill with live indicator
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4.5),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceElevated,
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: AppColors.borderHairline),
+              ),
+              child: const Text(
+                'AI NEWS AGGREGATOR  •  DAILY BRIEFING',
+                style: TextStyle(
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textMuted,
+                  letterSpacing: 0.8,
+                ),
+              ),
             ),
-          ),
-        ),
-        const SizedBox(height: 20),
-        Text(
-          'The daily AI briefing for builders and researchers.',
-          textAlign: isCompact ? TextAlign.center : TextAlign.left,
-          style: TextStyle(
-            fontSize: isCompact ? 30 : 42,
-            fontWeight: FontWeight.w800,
-            color: AppColors.textPrimary,
-            letterSpacing: -1.2,
-            height: 1.12,
-          ),
-        ),
-        const SizedBox(height: 16),
-        Text(
-          'Automated multi-agent synthesis across OpenAI, Anthropic, DeepSeek, Google, and arXiv. Curated for technical depth without marketing noise, delivered directly to your inbox.',
-          textAlign: isCompact ? TextAlign.center : TextAlign.left,
-          style: TextStyle(
-            fontSize: isCompact ? 14 : 16,
-            color: AppColors.textSecondary,
-            height: 1.5,
-            letterSpacing: -0.1,
-          ),
-        ),
-        const SizedBox(height: 32),
-        if (!isCompact) ...[
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: AppColors.borderHairline),
+            const SizedBox(height: 18),
+
+            // Main Editorial Headline
+            Text(
+              'The daily AI briefing for builders and researchers.',
+              textAlign: isCompact ? TextAlign.center : TextAlign.left,
+              style: TextStyle(
+                fontSize: isCompact ? 28 : 38,
+                fontWeight: FontWeight.w800,
+                color: AppColors.textPrimary,
+                letterSpacing: -1.1,
+                height: 1.14,
+              ),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            const SizedBox(height: 14),
+
+            // Narrative Paragraph matching container width and balanced length
+            Text(
+              'Autonomous multi-agent synthesis across OpenAI, Anthropic, DeepSeek, Google, and arXiv. Curated for technical depth and breakthroughs without marketing noise, delivered directly to your inbox every morning.',
+              textAlign: isCompact ? TextAlign.center : TextAlign.left,
+              style: TextStyle(
+                fontSize: isCompact ? 13.5 : 15,
+                color: AppColors.textSecondary,
+                height: 1.55,
+                letterSpacing: -0.1,
+              ),
+            ),
+            const SizedBox(height: 22),
+
+            // Live Synthesis Sample Card
+            if (!isCompact) ...[
+              Container(
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: AppColors.borderHairline),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Container(
-                          width: 8,
-                          height: 8,
-                          decoration: const BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: AppColors.brandPrimary,
-                          ),
+                        Row(
+                          children: [
+                            Container(
+                              width: 7,
+                              height: 7,
+                              decoration: const BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: AppColors.brandPrimary,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            const Text(
+                              'SAMPLE DIGEST ITEM  •  SCORED 9.8 / 10',
+                              style: TextStyle(
+                                fontSize: 10.5,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0.6,
+                                color: AppColors.textMuted,
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(width: 8),
                         const Text(
-                          'SAMPLE DIGEST ITEM  •  SCORED 9.8 / 10',
+                          'TODAY',
                           style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 0.6,
-                            color: AppColors.textMuted,
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textTertiary,
                           ),
                         ),
                       ],
                     ),
+                    const SizedBox(height: 10),
                     const Text(
-                      'TODAY',
+                      'DeepSeek-V3 MoE Architecture & Sparse Computation Breakdown',
                       style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textTertiary,
+                        fontSize: 14.5,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textPrimary,
+                        letterSpacing: -0.2,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    const Text(
+                      'Technical breakdown of multi-head latent attention (MLA) and multi-token prediction (MTP) yielding high-throughput inference efficiency.',
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        color: AppColors.textSecondary,
+                        height: 1.45,
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
-                const Text(
-                  'DeepSeek-V3 MoE Architecture & Sparse Computation Breakdown',
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
-                    letterSpacing: -0.2,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                const Text(
-                  'Analysis of multi-head latent attention (MLA) and multi-token prediction (MTP) yielding unprecedented inference efficiency...',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: AppColors.textSecondary,
-                    height: 1.45,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 24),
-        ],
+              ),
+              const SizedBox(height: 20),
+            ],
+          ],
+        ),
+
+        // Bottom Source Tags Row aligning with bottom of container
         Wrap(
           spacing: 8,
           runSpacing: 8,
@@ -481,6 +496,7 @@ class _AuthScreenState extends State<AuthScreen> {
       ],
     );
   }
+
 
   Widget _buildSourceTag(String label) {
     return Container(

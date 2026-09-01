@@ -7,7 +7,7 @@ class AppLogo extends StatelessWidget {
 
   const AppLogo({
     super.key,
-    this.size = 32,
+    this.size = 28,
     this.showBadge = true,
   });
 
@@ -30,38 +30,29 @@ class AppLogo extends StatelessWidget {
           ),
           child: Center(
             child: Icon(
-              Icons.terminal_rounded,
+              Icons.auto_awesome,
               color: AppColors.brandPrimary,
               size: size * 0.54,
             ),
           ),
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: 10),
         Text(
-          'Briefing',
+          'AI News Aggregator',
           style: TextStyle(
             fontSize: size * 0.52,
             fontWeight: FontWeight.w700,
             color: AppColors.textPrimary,
-            letterSpacing: -0.6,
-          ),
-        ),
-        Text(
-          '.ai',
-          style: TextStyle(
-            fontSize: size * 0.52,
-            fontWeight: FontWeight.w400,
-            color: AppColors.textMuted,
             letterSpacing: -0.4,
           ),
         ),
         if (showBadge) ...[
-          const SizedBox(width: 10),
+          const SizedBox(width: 8),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2.5),
             decoration: BoxDecoration(
               color: AppColors.surfaceElevated,
-              borderRadius: BorderRadius.circular(6),
+              borderRadius: BorderRadius.circular(5),
               border: Border.all(
                 color: AppColors.borderHairline,
                 width: 1,
@@ -70,10 +61,10 @@ class AppLogo extends StatelessWidget {
             child: const Text(
               'PRO',
               style: TextStyle(
-                fontSize: 10,
+                fontSize: 9.5,
                 fontWeight: FontWeight.w700,
                 color: AppColors.textSecondary,
-                letterSpacing: 0.6,
+                letterSpacing: 0.5,
               ),
             ),
           ),
