@@ -246,71 +246,66 @@ class _AuthScreenState extends State<AuthScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.bgDark,
-      body: Stack(
-        children: [
-          Positioned.fill(
-            child: Container(
-              color: AppColors.bgDark,
-            ),
-          ),
-          SafeArea(
-            child: Column(
-              children: [
-                _buildTopBar(),
-                Expanded(
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      final isDesktop = constraints.maxWidth >= 980;
+      body: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final isDesktop = constraints.maxWidth >= 980;
 
-                      return Center(
-                        child: SingleChildScrollView(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: isDesktop ? 56 : 20,
-                            vertical: isDesktop ? 36 : 24,
-                          ),
-                          child: ConstrainedBox(
-                            constraints: const BoxConstraints(maxWidth: 1160),
-                            child: isDesktop
-                                ? Row(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      // Left Column (Preserved Exactly)
-                                      Expanded(
-                                        flex: 12,
-                                        child: _buildEditorialHero(),
-                                      ),
-                                      const SizedBox(width: 72),
-                                      // Right Column: Redesigned Subscription Panel
-                                      Expanded(
-                                        flex: 9,
-                                        child: _buildAuthTerminal(),
-                                      ),
-                                    ],
-                                  )
-                                : Column(
-                                    children: [
-                                      _buildEditorialHero(isCompact: true),
-                                      const SizedBox(height: 36),
-                                      _buildAuthTerminal(),
-                                    ],
+            return Column(
+              children: [
+                _buildTopBar(isDesktop),
+                Expanded(
+                  child: Center(
+                    child: SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: isDesktop ? 48 : 20,
+                        vertical: isDesktop ? 32 : 20,
+                      ),
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 1200),
+                        child: isDesktop
+                            ? Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // Left Column (Editorial Hero)
+                                  Expanded(
+                                    flex: 12,
+                                    child: _buildEditorialHero(),
                                   ),
-                          ),
-                        ),
-                      );
-                    },
+                                  const SizedBox(width: 64),
+                                  // Right Column (Subscription / Auth Panel)
+                                  Expanded(
+                                    flex: 9,
+                                    child: _buildAuthTerminal(),
+                                  ),
+                                ],
+                              )
+                            : Column(
+                                children: [
+                                  _buildEditorialHero(isCompact: true),
+                                  const SizedBox(height: 32),
+                                  _buildAuthTerminal(),
+                                ],
+                              ),
+                      ),
+                    ),
                   ),
                 ),
               ],
-            ),
-          ),
-        ],
+            );
+          },
+        ),
       ),
     );
   }
 
-  Widget _buildTopBar() {
+  Widget _buildTopBar(bool isDesktop) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+      padding: EdgeInsets.symmetric(
+        horizontal: isDesktop ? 48 : 20,
+        vertical: 16,
+      ),
       decoration: const BoxDecoration(
         border: Border(
           bottom: BorderSide(color: AppColors.borderHairline, width: 1),
@@ -319,12 +314,12 @@ class _AuthScreenState extends State<AuthScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Flexible(
-            child: AppLogo(size: 24, showBadge: true),
+          Flexible(
+            child: AppLogo(size: isDesktop ? 40 : 34, showBadge: true),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 12),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
             decoration: BoxDecoration(
               color: AppColors.surfaceElevated,
               borderRadius: BorderRadius.circular(20),
@@ -333,14 +328,14 @@ class _AuthScreenState extends State<AuthScreen> {
             child: const Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.circle, size: 6, color: AppColors.statusLive),
-                SizedBox(width: 5),
+                Icon(Icons.circle, size: 7, color: AppColors.statusLive),
+                SizedBox(width: 6),
                 Text(
                   'LIVE INGESTION',
                   style: TextStyle(
-                    fontSize: 9.5,
+                    fontSize: 10,
                     fontWeight: FontWeight.w700,
-                    letterSpacing: 0.4,
+                    letterSpacing: 0.5,
                     color: AppColors.textSecondary,
                   ),
                 ),
@@ -351,6 +346,7 @@ class _AuthScreenState extends State<AuthScreen> {
       ),
     );
   }
+
 
   Widget _buildEditorialHero({bool isCompact = false}) {
     return Column(

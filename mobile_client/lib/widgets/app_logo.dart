@@ -8,7 +8,7 @@ class AppLogo extends StatelessWidget {
 
   const AppLogo({
     super.key,
-    this.size = 30,
+    this.size = 38,
     this.showBadge = true,
     this.useFullLogoWithBg = false,
   });
@@ -23,47 +23,56 @@ class AppLogo extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        // Transparent BG-less custom logo image
+        // Prominent, crisp transparent logo image
         Image.asset(
           assetPath,
-          width: size,
           height: size,
+          width: size,
           fit: BoxFit.contain,
           errorBuilder: (context, error, stackTrace) {
-            // Secondary attempt with original filename
             return Image.asset(
               'assets/images/logo with no bg.png',
-              width: size,
               height: size,
+              width: size,
               fit: BoxFit.contain,
               errorBuilder: (ctx, err, st) {
-                // Subtle vector fallback if assets aren't yet loaded by flutter engine
-                return Icon(
-                  Icons.auto_awesome,
-                  color: AppColors.brandPrimary,
-                  size: size * 0.8,
+                return Container(
+                  width: size,
+                  height: size,
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceElevated,
+                    borderRadius: BorderRadius.circular(size * 0.25),
+                    border: Border.all(color: AppColors.borderMedium),
+                  ),
+                  child: Center(
+                    child: Icon(
+                      Icons.auto_awesome,
+                      color: AppColors.brandPrimary,
+                      size: size * 0.55,
+                    ),
+                  ),
                 );
               },
             );
           },
         ),
-        const SizedBox(width: 10),
+        const SizedBox(width: 12),
         Text(
           'AI News Aggregator',
-          style: TextStyle(
-            fontSize: size * 0.52,
+          style: const TextStyle(
+            fontSize: 16.5,
             fontWeight: FontWeight.w700,
             color: AppColors.textPrimary,
             letterSpacing: -0.4,
           ),
         ),
         if (showBadge) ...[
-          const SizedBox(width: 8),
+          const SizedBox(width: 9),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2.5),
+            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
             decoration: BoxDecoration(
               color: AppColors.surfaceElevated,
-              borderRadius: BorderRadius.circular(5),
+              borderRadius: BorderRadius.circular(6),
               border: Border.all(
                 color: AppColors.borderHairline,
                 width: 1,
@@ -72,10 +81,10 @@ class AppLogo extends StatelessWidget {
             child: const Text(
               'PRO',
               style: TextStyle(
-                fontSize: 9.5,
+                fontSize: 10,
                 fontWeight: FontWeight.w700,
                 color: AppColors.textSecondary,
-                letterSpacing: 0.5,
+                letterSpacing: 0.6,
               ),
             ),
           ),
