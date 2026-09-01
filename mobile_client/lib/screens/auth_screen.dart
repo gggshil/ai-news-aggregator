@@ -303,8 +303,8 @@ class _AuthScreenState extends State<AuthScreen> {
   Widget _buildTopBar(bool isDesktop) {
     return Container(
       padding: EdgeInsets.symmetric(
-        horizontal: isDesktop ? 48 : 20,
-        vertical: 16,
+        horizontal: isDesktop ? 48 : 16,
+        vertical: isDesktop ? 16 : 12,
       ),
       decoration: const BoxDecoration(
         border: Border(
@@ -314,29 +314,35 @@ class _AuthScreenState extends State<AuthScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Flexible(
-            child: AppLogo(size: isDesktop ? 48 : 38, showBadge: true),
+          Expanded(
+            child: AppLogo(
+              size: isDesktop ? 44 : 32,
+              showBadge: isDesktop,
+              fontSize: isDesktop ? 16 : 13.5,
+            ),
           ),
-
-          const SizedBox(width: 12),
+          const SizedBox(width: 8),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            padding: EdgeInsets.symmetric(
+              horizontal: isDesktop ? 10 : 8,
+              vertical: isDesktop ? 5 : 3.5,
+            ),
             decoration: BoxDecoration(
               color: AppColors.surfaceElevated,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(color: AppColors.borderHairline),
             ),
-            child: const Row(
+            child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.circle, size: 7, color: AppColors.statusLive),
-                SizedBox(width: 6),
+                const Icon(Icons.circle, size: 6, color: AppColors.statusLive),
+                const SizedBox(width: 5),
                 Text(
-                  'LIVE INGESTION',
-                  style: TextStyle(
-                    fontSize: 10,
+                  isDesktop ? 'LIVE INGESTION' : 'LIVE',
+                  style: const TextStyle(
+                    fontSize: 9.5,
                     fontWeight: FontWeight.w700,
-                    letterSpacing: 0.5,
+                    letterSpacing: 0.4,
                     color: AppColors.textSecondary,
                   ),
                 ),
@@ -347,6 +353,7 @@ class _AuthScreenState extends State<AuthScreen> {
       ),
     );
   }
+
 
 
   Widget _buildEditorialHero({bool isCompact = false}) {
