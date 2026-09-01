@@ -7,6 +7,7 @@ class AppColors {
   
   // Surfaces & Panels
   static const Color surface = Color(0xFF111218);
+  static const Color surfaceCard = Color(0xFF111218);
   static const Color surfaceElevated = Color(0xFF161821);
   static const Color surfaceInput = Color(0xFF0F1015);
   static const Color surfaceHighlight = Color(0xFF1E202B);
@@ -19,9 +20,11 @@ class AppColors {
 
   // Brand Accent (Restrained Linear Indigo)
   static const Color brandPrimary = Color(0xFF5E6AD2);
+  static const Color primaryIndigo = Color(0xFF5E6AD2);
   static const Color brandHover = Color(0xFF4F59C7);
   static const Color brandAccent = Color(0xFF6875E8);
   static const Color brandCyan = Color(0xFF38BDF8);
+  static const Color accentCyan = Color(0xFF38BDF8);
 
   // Linear-style subtle atmospheric mesh gradient
   static const LinearGradient brandGradient = LinearGradient(
@@ -39,6 +42,8 @@ class AppColors {
   // Status Colors
   static const Color statusLive = Color(0xFF10B981);
   static const Color statusLiveBg = Color(0x1A10B981);
+  static const Color success = Color(0xFF10B981);
+  static const Color successBg = Color(0x1A10B981);
   static const Color error = Color(0xFFF87171);
   static const Color errorBg = Color(0x1AF87171);
   static const Color errorBorder = Color(0x33F87171);
@@ -48,6 +53,7 @@ class AppColors {
   static const Color textSecondary = Color(0xFF8A8F98); // Muted neutral
   static const Color textMuted = Color(0xFF62666D);     // Slate gray
   static const Color textTertiary = Color(0xFF4B4F56);  // Subtle label
+  static const Color textPlaceholder = Color(0xFF4B4F56);
 }
 
 class AppTheme {

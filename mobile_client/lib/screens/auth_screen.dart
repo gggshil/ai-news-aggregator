@@ -313,7 +313,7 @@ class _AuthScreenState extends State<AuthScreen> {
 
   Widget _buildTopBar() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
       decoration: const BoxDecoration(
         border: Border(
           bottom: BorderSide(color: AppColors.borderHairline, width: 1),
@@ -322,9 +322,12 @@ class _AuthScreenState extends State<AuthScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const AppLogo(size: 26, showBadge: true),
+          const Flexible(
+            child: AppLogo(size: 24, showBadge: true),
+          ),
+          const SizedBox(width: 8),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
               color: AppColors.surfaceElevated,
               borderRadius: BorderRadius.circular(20),
@@ -333,14 +336,14 @@ class _AuthScreenState extends State<AuthScreen> {
             child: const Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.circle, size: 7, color: AppColors.statusLive),
-                SizedBox(width: 6),
+                Icon(Icons.circle, size: 6, color: AppColors.statusLive),
+                SizedBox(width: 5),
                 Text(
-                  'DAILY INGESTION LIVE',
+                  'LIVE INGESTION',
                   style: TextStyle(
-                    fontSize: 10,
+                    fontSize: 9.5,
                     fontWeight: FontWeight.w700,
-                    letterSpacing: 0.5,
+                    letterSpacing: 0.4,
                     color: AppColors.textSecondary,
                   ),
                 ),
@@ -351,6 +354,7 @@ class _AuthScreenState extends State<AuthScreen> {
       ),
     );
   }
+
 
   Widget _buildEditorialHero({bool isCompact = false}) {
     return Column(
