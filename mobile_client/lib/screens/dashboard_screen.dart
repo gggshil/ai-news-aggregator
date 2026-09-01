@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../widgets/app_logo.dart';
 
 class DashboardScreen extends StatelessWidget {
   final String email;
@@ -22,22 +23,8 @@ class DashboardScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: const Row(
-          children: [
-            Icon(Icons.hub_outlined, color: AppColors.accentCyan, size: 22),
-            SizedBox(width: 10),
-            Text(
-              'AI News Aggregator',
-              style: TextStyle(
-                fontWeight: FontWeight.w700,
-                fontSize: 18,
-                color: AppColors.textPrimary,
-                letterSpacing: -0.3,
-              ),
-            ),
+        title: const AppLogo(size: 24, showBadge: true),
 
-          ],
-        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.logout_rounded, color: AppColors.textSecondary),
