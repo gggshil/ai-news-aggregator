@@ -3,7 +3,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from app.agent.email_agent import EmailAgent, RankedArticleDetail, EmailDigestResponse
+from app.agent.email_agent import EmailAgent, RankedArticleDetail, EmailDigestResponse, EmailIntroduction
+
 from app.agent.curator_agent import CuratorAgent
 from app.profiles.user_profile import USER_PROFILE
 from app.database.repository import Repository
