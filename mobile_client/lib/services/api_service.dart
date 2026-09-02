@@ -118,4 +118,50 @@ class ApiService {
       );
     }
   }
+
+  static Future<AuthResult> deleteAccount({
+    required String email,
+    String? customBaseUrl,
+  }) async {
+    final effectiveUrl = (customBaseUrl != null && customBaseUrl.trim().isNotEmpty)
+        ? customBaseUrl.trim()
+        : baseUrl;
+    final uri = Uri.parse('$effectiveUrl/api/auth');
+
+    try {
+      final response = await http
+          .post(
+            uri,
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'action': 'delete',
+              'email': email,
+            }),
+          )
+          .timeout(const Duration(seconds: 15));
+
+      final Map<String, dynamic> data = jsonDecode(response.body);
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return AuthResult(
+          success: true,
+          message: data['message'] ?? 'Subscription cancelled successfully.',
+          email: email,
+        );
+      } else {
+        return AuthResult(
+          success: false,
+          message: data['detail'] ?? data['error'] ?? 'Could not cancel subscription.',
+          error: data['detail'] ?? data['error'],
+        );
+      }
+    } catch (e) {
+      return AuthResult(
+        success: false,
+        message: 'Unable to connect to the server. Please check your internet connection.',
+        error: e.toString(),
+      );
+    }
+  }
 }
+

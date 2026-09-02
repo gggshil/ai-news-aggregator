@@ -179,9 +179,22 @@ class handler(BaseHTTPRequestHandler):
                         "subscriber": {"id": user.id, "email": user.email},
                     }).encode("utf-8")
                 )
+            elif action in ("delete", "unsubscribe"):
+                deleted = repo.delete_subscriber(email)
+                self.send_response(200)
+                self._send_cors_headers()
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(
+                    json.dumps({
+                        "success": True,
+                        "message": "Subscription cancelled and account removed successfully. You will no longer receive daily digests.",
+                    }).encode("utf-8")
+                )
             else:
                 self.send_response(400)
                 self._send_cors_headers()
+
                 self.send_header("Content-Type", "application/json")
                 self.end_headers()
                 self.wfile.write(

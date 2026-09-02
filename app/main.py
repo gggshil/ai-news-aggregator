@@ -121,8 +121,24 @@ def authenticate(payload: AuthRequest):
                 "subscriber": {"id": user.id, "email": user.email},
             }
 
+        elif payload.action in ("delete", "unsubscribe"):
+            deleted = repo.delete_subscriber(email)
+            if deleted:
+                logger.info(f"Subscriber {email} unsubscribed and deleted.")
+                return {
+                    "success": True,
+                    "message": "Subscription cancelled and account removed successfully. You will no longer receive daily digests.",
+                }
+            else:
+                # Still return success so the client state clears gracefully
+                return {
+                    "success": True,
+                    "message": "Subscription was already inactive.",
+                }
+
         else:
             raise HTTPException(status_code=400, detail=f"Unknown action: {payload.action}")
+
 
     except HTTPException:
         raise

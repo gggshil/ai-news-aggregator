@@ -1,11 +1,171 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_logo.dart';
+import '../services/api_service.dart';
 
-class DashboardScreen extends StatelessWidget {
+class DashboardScreen extends StatefulWidget {
   final String email;
 
   const DashboardScreen({super.key, required this.email});
+
+  @override
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+  bool _isDeleting = false;
+
+  Future<void> _handleDeleteAccount(BuildContext context) async {
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+
+    final confirmed = await showDialog<bool>(
+
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFF10131D),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+            side: BorderSide(color: Colors.redAccent.withValues(alpha: 0.3)),
+          ),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.redAccent.withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.warning_amber_rounded, color: Colors.redAccent, size: 24),
+              ),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Text(
+                  'Cancel Subscription?',
+                  style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700),
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Are you sure you want to stop receiving daily AI digests at:\n${widget.email}?',
+                style: const TextStyle(color: Color(0xFFCBD5E1), fontSize: 14, height: 1.5),
+              ),
+              const SizedBox(height: 14),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.red.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.redAccent.withValues(alpha: 0.2)),
+                ),
+                child: const Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(Icons.info_outline_rounded, color: Colors.redAccent, size: 16),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'This will permanently stop automated morning AI news emails and delete your subscription record.',
+                        style: TextStyle(color: Color(0xFFFCA5A5), fontSize: 12, height: 1.4),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text(
+                'Keep Subscription',
+                style: TextStyle(color: AppColors.textSecondary, fontWeight: FontWeight.w600),
+              ),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.redAccent.shade700,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                elevation: 0,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              ),
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: const Text(
+                'Yes, Cancel & Delete',
+                style: TextStyle(fontWeight: FontWeight.w700),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed != true || !mounted) return;
+
+
+    setState(() => _isDeleting = true);
+
+    try {
+      final result = await ApiService.deleteAccount(email: widget.email);
+
+      if (!mounted) return;
+
+      if (result.success) {
+        scaffoldMessenger.showSnackBar(
+          SnackBar(
+            backgroundColor: const Color(0xFF10131D),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: const BorderSide(color: Color(0xFF34D399)),
+            ),
+            content: Row(
+              children: [
+                const Icon(Icons.check_circle_rounded, color: Color(0xFF34D399), size: 20),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    result.message,
+                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+        navigator.pop();
+      } else {
+        scaffoldMessenger.showSnackBar(
+          SnackBar(
+            backgroundColor: const Color(0xFF10131D),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: const BorderSide(color: Colors.redAccent),
+            ),
+            content: Text(
+              result.message,
+              style: const TextStyle(color: Colors.redAccent, fontSize: 13),
+            ),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isDeleting = false);
+      }
+    }
+
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +184,6 @@ class DashboardScreen extends StatelessWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
         title: const AppLogo(size: 24, showBadge: true),
-
         actions: [
           IconButton(
             icon: const Icon(Icons.logout_rounded, color: AppColors.textSecondary),
@@ -109,7 +268,7 @@ class DashboardScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    email,
+                    widget.email,
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 17,
@@ -219,6 +378,76 @@ class DashboardScreen extends StatelessWidget {
                 );
               },
             ),
+            const SizedBox(height: 32),
+
+            // Danger Zone: Unsubscribe & Delete Account
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: const Color(0xFF11141E),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.redAccent.withValues(alpha: 0.2)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Row(
+                    children: [
+                      Icon(Icons.shield_outlined, color: Colors.redAccent, size: 18),
+                      SizedBox(width: 8),
+                      Text(
+                        'Subscription Management',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  const Text(
+                    'Cancel your subscription to immediately stop all automatic daily AI news deliveries and delete your subscriber profile.',
+                    style: TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 12,
+                      height: 1.5,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 44,
+                    child: OutlinedButton.icon(
+                      icon: _isDeleting
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.redAccent,
+                              ),
+                            )
+                          : const Icon(Icons.delete_outline_rounded, color: Colors.redAccent, size: 18),
+                      label: Text(
+                        _isDeleting ? 'Cancelling Subscription...' : 'Cancel Subscription & Delete Account',
+                        style: const TextStyle(
+                          color: Colors.redAccent,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                        ),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(color: Colors.redAccent.withValues(alpha: 0.4)),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                      onPressed: _isDeleting ? null : () => _handleDeleteAccount(context),
+                    ),
+                  ),
+                ],
+              ),
+            ),
             const SizedBox(height: 30),
           ],
         ),
@@ -226,4 +455,3 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 }
-

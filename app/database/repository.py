@@ -467,3 +467,12 @@ class Repository:
             .all()
         )
 
+    def delete_subscriber(self, email: str) -> bool:
+        sub = self.get_subscriber_by_email(email)
+        if sub:
+            self.session.delete(sub)
+            self.session.commit()
+            return True
+        return False
+
+
