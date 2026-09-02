@@ -20,8 +20,9 @@ class ApiService {
   // Can be configured at build time with: --dart-define=API_BASE_URL=https://your-backend.onrender.com
   static const String defaultBaseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'http://localhost:8000',
+    defaultValue: 'https://ai-news-aggregator-nsqm.onrender.com',
   );
+
 
   static String baseUrl = defaultBaseUrl;
 
