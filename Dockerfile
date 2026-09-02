@@ -16,7 +16,8 @@ COPY pyproject.toml uv.lock ./
 
 RUN uv pip install --system -r pyproject.toml
 
-COPY . .
+EXPOSE 8000
 
-CMD ["uv", "run", "main.py"]
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+
 
