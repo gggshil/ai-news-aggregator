@@ -5,6 +5,8 @@ from app.database.repository import Repository
 from app.database.connection import db_session, engine
 from app.database.models import Base
 from app.utils.security import hash_password, verify_password
+from app.services.email import send_welcome_email
+
 
 logger = logging.getLogger(__name__)
 
@@ -62,6 +64,8 @@ class handler(BaseHTTPRequestHandler):
                     import secrets
                     pwd_hash = hash_password(secrets.token_urlsafe(32))
                     user = repo.create_subscriber(email=email, password_hash=pwd_hash)
+                    send_welcome_email(email)
+
 
                 self.send_response(200)
                 self._send_cors_headers()
@@ -134,6 +138,8 @@ class handler(BaseHTTPRequestHandler):
 
                 pwd_hash = hash_password(password)
                 sub = repo.create_subscriber(email=email, password_hash=pwd_hash)
+                send_welcome_email(email)
+
 
                 self.send_response(201)
                 self._send_cors_headers()

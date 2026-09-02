@@ -11,6 +11,8 @@ from app.database.repository import Repository
 from app.database.connection import engine, db_session
 from app.database.models import Base
 from app.utils.security import hash_password, verify_password
+from app.services.email import send_welcome_email
+
 
 load_dotenv()
 
@@ -70,6 +72,8 @@ def authenticate(payload: AuthRequest):
             if not user:
                 pwd_hash = hash_password(secrets.token_urlsafe(32))
                 user = repo.create_subscriber(email=email, password_hash=pwd_hash)
+                send_welcome_email(email)
+
 
             return {
                 "success": True,
@@ -98,7 +102,9 @@ def authenticate(payload: AuthRequest):
 
             pwd_hash = hash_password(password)
             sub = repo.create_subscriber(email=email, password_hash=pwd_hash)
+            send_welcome_email(email)
             return {
+
                 "success": True,
                 "message": "Successfully registered! You will now receive daily AI news digests.",
                 "subscriber": {"id": sub.id, "email": sub.email},

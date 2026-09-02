@@ -4,9 +4,8 @@ import html
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from dotenv import load_dotenv
-import markdown
-
 load_dotenv()
+
 
 MY_EMAIL = os.getenv("MY_EMAIL")
 APP_PASSWORD = os.getenv("APP_PASSWORD")
@@ -45,7 +44,9 @@ def send_email(subject: str, body_text: str, body_html: str = None, recipients: 
 
 
 def markdown_to_html(markdown_text: str) -> str:
+    import markdown
     html = markdown.markdown(markdown_text, extensions=['extra', 'nl2br'])
+
     return f"""<!DOCTYPE html>
 <html>
 <head>
@@ -239,5 +240,127 @@ def send_email_to_self(subject: str, body: str):
     send_email(subject, body, recipients=[MY_EMAIL])
 
 
-if __name__ == "__main__":
-    send_email_to_self("Test from Python", "Hello from my script.")
+def send_welcome_email(recipient_email: str) -> bool:
+    """
+    Dispatches a formalized welcome email with branding and logo
+    to a newly registered subscriber.
+    """
+    try:
+        user_name = recipient_email.split("@")[0].capitalize()
+        subject = "🎉 Welcome to AI News Aggregator — Your Daily Intelligence Briefing is Active"
+        
+        logo_url = "https://raw.githubusercontent.com/gggshil/ai-news-aggregator/main/mobile_client/assets/images/navbar_logo.png"
+        
+        body_text = f"""Hello {user_name},
+
+Congratulations & Welcome to AI News Aggregator!
+
+Your daily AI news subscription has been activated successfully. 
+Starting today, you will receive our autonomous, AI-curated intelligence briefing delivered directly to your inbox every morning at 5:00 AM UTC.
+
+WHAT YOU CAN EXPECT DAILY:
+• Multi-Source Ingestion: Top announcements and papers scraped from OpenAI, Anthropic, DeepSeek, Google DeepMind, and arXiv.
+• AI Synthesis: The most significant breakthroughs analyzed and prioritized for signal over noise.
+• Mobile & Web Synchronization: Access your daily digests anytime via your mobile Android and Web app.
+
+Thank you for joining our community of builders and researchers.
+
+Best regards,
+The AI News Aggregator Team
+"""
+
+        body_html = f"""<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to AI News Aggregator</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #08090D; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #E2E8F0;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #08090D; padding: 32px 16px;">
+        <tr>
+            <td align="center">
+                <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; background-color: #10121A; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; overflow: hidden; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);">
+                    
+                    <!-- Header with Logo -->
+                    <tr>
+                        <td align="center" style="padding: 36px 24px 20px; background: linear-gradient(180deg, #141724 0%, #10121A 100%); border-bottom: 1px solid rgba(255, 255, 255, 0.06);">
+                            <img src="{logo_url}" alt="AI News Aggregator Logo" width="68" height="68" style="display: block; margin-bottom: 14px; border-radius: 12px;" />
+                            <h1 style="margin: 0; font-size: 22px; font-weight: 700; color: #FFFFFF; letter-spacing: -0.3px;">AI News Aggregator</h1>
+                            <p style="margin: 6px 0 0; font-size: 13px; color: #818CF8; letter-spacing: 0.5px; text-transform: uppercase; font-weight: 600;">Autonomous Daily AI Intelligence</p>
+                        </td>
+                    </tr>
+
+                    <!-- Body Content -->
+                    <tr>
+                        <td style="padding: 32px 30px;">
+                            <h2 style="margin: 0 0 14px; font-size: 19px; font-weight: 600; color: #F1F5F9;">Congratulations & Welcome!</h2>
+                            <p style="margin: 0 0 16px; font-size: 15px; line-height: 1.6; color: #94A3B8;">
+                                Hello <strong style="color: #F8FAFC;">{user_name}</strong>,
+                            </p>
+                            <p style="margin: 0 0 24px; font-size: 15px; line-height: 1.6; color: #94A3B8;">
+                                Your subscription has been activated. Starting today, you will receive our autonomous, AI-curated intelligence briefing delivered directly to your inbox every morning at <strong style="color: #F8FAFC;">5:00 AM UTC</strong>.
+                            </p>
+
+                            <!-- Features Card -->
+                            <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #0B0D14; border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 12px; padding: 20px; margin-bottom: 28px;">
+                                <tr>
+                                    <td>
+                                        <p style="margin: 0 0 12px; font-size: 12px; font-weight: 700; color: #818CF8; letter-spacing: 0.8px; text-transform: uppercase;">What You Will Receive Daily</p>
+                                        
+                                        <div style="margin-bottom: 12px;">
+                                            <strong style="font-size: 14px; color: #F8FAFC;">⚡ Multi-Source Ingestion</strong>
+                                            <p style="margin: 3px 0 0; font-size: 13px; color: #94A3B8; line-height: 1.5;">Direct scraping from OpenAI, Anthropic, DeepSeek, Google DeepMind, and top arXiv machine learning papers.</p>
+                                        </div>
+
+                                        <div style="margin-bottom: 12px;">
+                                            <strong style="font-size: 14px; color: #F8FAFC;">🧠 AI-Powered Synthesis</strong>
+                                            <p style="margin: 3px 0 0; font-size: 13px; color: #94A3B8; line-height: 1.5;">Every article is analyzed, scored, and ranked by Gemini to give you pure signal without promotional noise.</p>
+                                        </div>
+
+                                        <div>
+                                            <strong style="font-size: 14px; color: #F8FAFC;">📱 Synchronized Mobile Access</strong>
+                                            <p style="margin: 3px 0 0; font-size: 13px; color: #94A3B8; line-height: 1.5;">Your digests are instantly synced and readable inside your Android APK and Web dashboard.</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <p style="margin: 0 0 8px; font-size: 14px; line-height: 1.6; color: #94A3B8;">
+                                No further setup is required on your part. Your first morning edition will arrive tomorrow!
+                            </p>
+                            
+                            <p style="margin: 24px 0 0; font-size: 14px; line-height: 1.6; color: #CBD5E1;">
+                                Warm regards,<br />
+                                <strong style="color: #FFFFFF;">The AI News Aggregator Team</strong>
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td align="center" style="padding: 20px 24px; background-color: #0A0C12; border-top: 1px solid rgba(255, 255, 255, 0.05); font-size: 12px; color: #64748B;">
+                            <p style="margin: 0 0 4px;">You received this email because you subscribed at <strong>AI News Aggregator</strong>.</p>
+                            <p style="margin: 0;">© 2026 AI News Aggregator • Built for Builders & Researchers</p>
+                        </td>
+                    </tr>
+
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
+"""
+
+        send_email(
+            subject=subject,
+            body_text=body_text,
+            body_html=body_html,
+            recipients=[recipient_email]
+        )
+        return True
+    except Exception as e:
+        import logging
+        logging.getLogger("ai_news_api").warning(f"Could not send welcome email to {recipient_email}: {e}")
+        return False
