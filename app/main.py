@@ -72,9 +72,8 @@ def authenticate(payload: AuthRequest):
             if not user:
                 pwd_hash = hash_password(secrets.token_urlsafe(32))
                 user = repo.create_subscriber(email=email, password_hash=pwd_hash)
-                send_welcome_email(email)
 
-
+            send_welcome_email(email)
             return {
                 "success": True,
                 "message": "Authenticated with Google! You are active for AI news digests.",
@@ -89,6 +88,7 @@ def authenticate(payload: AuthRequest):
             existing = repo.get_subscriber_by_email(email)
             if existing:
                 if verify_password(password, existing.password_hash):
+                    send_welcome_email(email)
                     return {
                         "success": True,
                         "message": "Welcome back! You are subscribed to AI news digests.",
@@ -104,7 +104,6 @@ def authenticate(payload: AuthRequest):
             sub = repo.create_subscriber(email=email, password_hash=pwd_hash)
             send_welcome_email(email)
             return {
-
                 "success": True,
                 "message": "Successfully registered! You will now receive daily AI news digests.",
                 "subscriber": {"id": sub.id, "email": sub.email},
@@ -115,11 +114,13 @@ def authenticate(payload: AuthRequest):
             if not user or not verify_password(password, user.password_hash):
                 raise HTTPException(status_code=401, detail="Invalid email or password.")
 
+            send_welcome_email(email)
             return {
                 "success": True,
                 "message": "Login successful! You are actively receiving AI news digests.",
                 "subscriber": {"id": user.id, "email": user.email},
             }
+
 
         elif payload.action in ("delete", "unsubscribe"):
             deleted = repo.delete_subscriber(email)

@@ -64,7 +64,9 @@ class handler(BaseHTTPRequestHandler):
                     import secrets
                     pwd_hash = hash_password(secrets.token_urlsafe(32))
                     user = repo.create_subscriber(email=email, password_hash=pwd_hash)
-                    send_welcome_email(email)
+
+                send_welcome_email(email)
+
 
 
                 self.send_response(200)
@@ -111,7 +113,9 @@ class handler(BaseHTTPRequestHandler):
                 if existing:
                     # If already exists, check password or inform user
                     if verify_password(password, existing.password_hash):
+                        send_welcome_email(email)
                         self.send_response(200)
+
                         self._send_cors_headers()
                         self.send_header("Content-Type", "application/json")
                         self.end_headers()
@@ -168,7 +172,9 @@ class handler(BaseHTTPRequestHandler):
                     )
                     return
 
+                send_welcome_email(email)
                 self.send_response(200)
+
                 self._send_cors_headers()
                 self.send_header("Content-Type", "application/json")
                 self.end_headers()

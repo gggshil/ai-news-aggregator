@@ -91,11 +91,14 @@ def send_digest_email(hours: int = 24, top_n: int = 10) -> dict:
         
         from app.services.email import MY_EMAIL, APP_PASSWORD
         if not recipient_emails:
-            logger.info("No registered subscribers found in database. Using default/admin email if available.")
-            if MY_EMAIL:
-                recipient_emails = [MY_EMAIL]
-            else:
-                recipient_emails = ["fakejishil@gmail.com"]
+            logger.info("No active subscribers found in database. Skipping email delivery.")
+            return {
+                "success": True,
+                "message": "No active subscribers in database.",
+                "recipients_count": 0,
+                "articles_count": len(result.articles),
+            }
+
 
         if not MY_EMAIL or not APP_PASSWORD:
             logger.warning("MY_EMAIL or APP_PASSWORD not configured. Printing digest to console and skipping email dispatch.")
