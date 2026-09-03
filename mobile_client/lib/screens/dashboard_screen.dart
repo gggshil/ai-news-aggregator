@@ -4,7 +4,6 @@ import '../widgets/app_logo.dart';
 import '../services/api_service.dart';
 import '../services/auth_state.dart';
 import 'auth_screen.dart';
-import 'success_animation_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   final String email;
@@ -220,6 +219,88 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   }
 
+  Future<void> _showLogoutConfirmationDialog(BuildContext context) async {
+    final navigator = Navigator.of(context);
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: const Color(0xFF10131D),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: Color(0xFF1E212D)),
+        ),
+        title: const Row(
+          children: [
+            Icon(Icons.logout_rounded, color: Color(0xFF6366F1), size: 22),
+            SizedBox(width: 10),
+            Text(
+              'Sign Out?',
+              style: TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.w700),
+            ),
+          ],
+        ),
+        content: const Text(
+          'Are you sure you want to log out and return to the login screen? All active session tokens will be cut off.',
+          style: TextStyle(color: Color(0xFF94A3B8), fontSize: 13.5, height: 1.5),
+        ),
+        actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text(
+              'No',
+              style: TextStyle(color: AppColors.textSecondary, fontWeight: FontWeight.w600, fontSize: 13.5),
+            ),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF6366F1),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              elevation: 0,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            ),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text(
+              'Yes',
+              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      await AuthManager.instance.logout();
+      if (mounted) {
+        scaffoldMessenger.showSnackBar(
+          SnackBar(
+            backgroundColor: const Color(0xFF10131D),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: const BorderSide(color: Color(0xFF34D399)),
+            ),
+            content: const Row(
+              children: [
+                Icon(Icons.check_circle_rounded, color: Color(0xFF34D399), size: 20),
+                SizedBox(width: 10),
+                Text('Logged out successfully', style: TextStyle(color: Colors.white, fontSize: 13)),
+              ],
+            ),
+          ),
+        );
+        navigator.pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => const AuthScreen()),
+          (route) => false,
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final sources = [
@@ -238,49 +319,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
-          tooltip: 'Back',
-          onPressed: () {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => SuccessAnimationScreen(email: widget.email),
-              ),
-            );
-          },
+          tooltip: 'Log Out',
+          onPressed: () => _showLogoutConfirmationDialog(context),
         ),
         title: const AppLogo(size: 24, showBadge: true),
         actions: [
           IconButton(
             icon: const Icon(Icons.logout_rounded, color: AppColors.textSecondary),
             tooltip: 'Log Out',
-            onPressed: () async {
-              final navigator = Navigator.of(context);
-              final scaffoldMessenger = ScaffoldMessenger.of(context);
-              await AuthManager.instance.logout();
-              if (mounted) {
-                scaffoldMessenger.showSnackBar(
-                  SnackBar(
-                    backgroundColor: const Color(0xFF10131D),
-                    behavior: SnackBarBehavior.floating,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      side: const BorderSide(color: Color(0xFF34D399)),
-                    ),
-                    content: const Row(
-                      children: [
-                        Icon(Icons.check_circle_rounded, color: Color(0xFF34D399), size: 20),
-                        SizedBox(width: 10),
-                        Text('Logged out successfully', style: TextStyle(color: Colors.white, fontSize: 13)),
-                      ],
-                    ),
-                  ),
-                );
-                navigator.pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (context) => const AuthScreen()),
-                  (route) => false,
-                );
-              }
-            },
+            onPressed: () => _showLogoutConfirmationDialog(context),
           ),
         ],
       ),
