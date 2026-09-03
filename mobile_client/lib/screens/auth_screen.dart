@@ -11,7 +11,9 @@ import '../widgets/primary_button.dart';
 import 'success_animation_screen.dart';
 
 class AuthScreen extends StatefulWidget {
-  const AuthScreen({super.key});
+  final String? sessionExpiredMessage;
+
+  const AuthScreen({super.key, this.sessionExpiredMessage});
 
   @override
   State<AuthScreen> createState() => _AuthScreenState();
@@ -20,13 +22,22 @@ class AuthScreen extends StatefulWidget {
 class _AuthScreenState extends State<AuthScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
-
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
   final _serverController = TextEditingController(text: ApiService.defaultBaseUrl);
 
   bool _isRegistering = true;
   bool _isLoading = false;
+  bool _termsAccepted = false;
   String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.sessionExpiredMessage != null) {
+      _errorMessage = widget.sessionExpiredMessage;
+    }
+  }
 
 
 
@@ -35,8 +46,99 @@ class _AuthScreenState extends State<AuthScreen> {
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     _serverController.dispose();
     super.dispose();
+  }
+
+  int _calculatePasswordStrength(String password) {
+    if (password.isEmpty) return 0;
+    int score = 0;
+    if (password.length >= 6) score++;
+    if (password.length >= 8 && RegExp(r'[A-Z0-9]').hasMatch(password)) score++;
+    if (password.length >= 10 && RegExp(r'[!@#$%^&*(),.?":{}|<>]').hasMatch(password)) score++;
+    return score;
+  }
+
+  Future<void> _showForgotPasswordDialog() async {
+    final resetEmailController = TextEditingController(text: _emailController.text.trim());
+    await showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF101218),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+          side: const BorderSide(color: Color(0xFF1E212D)),
+        ),
+        title: const Row(
+          children: [
+            Icon(Icons.lock_reset_rounded, size: 20, color: AppColors.brandPrimary),
+            SizedBox(width: 8),
+            Text(
+              'Reset Password',
+              style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w600),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Enter your email address and we will send you password reset instructions:',
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5, height: 1.4),
+            ),
+            const SizedBox(height: 14),
+            TextField(
+              controller: resetEmailController,
+              keyboardType: TextInputType.emailAddress,
+              style: const TextStyle(color: Colors.white, fontSize: 13.5),
+              decoration: InputDecoration(
+                hintText: 'you@gmail.com',
+                hintStyle: const TextStyle(color: Color(0xFF4B4F56), fontSize: 13.5),
+                filled: true,
+                fillColor: const Color(0xFF090A0E),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: const BorderSide(color: Color(0xFF1E212D)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: const BorderSide(color: AppColors.brandPrimary),
+                ),
+                prefixIcon: const Icon(Icons.mail_outline_rounded, color: Color(0xFF5A5E6B), size: 17),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel', style: TextStyle(color: Color(0xFF8A8F98), fontSize: 13)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.brandPrimary,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            onPressed: () {
+              Navigator.pop(ctx);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: const Text('If an account exists for this email, password reset instructions have been sent.'),
+                  backgroundColor: AppColors.statusLive,
+                  behavior: SnackBarBehavior.floating,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+              );
+            },
+            child: const Text('Send Reset Link', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _processGoogleAuth(String email) async {
@@ -188,7 +290,19 @@ class _AuthScreenState extends State<AuthScreen> {
 
 
   Future<void> _handleSubmit() async {
+    if (_isLoading) return; // Prevent double-click
     if (!_formKey.currentState!.validate()) return;
+
+    if (_isRegistering) {
+      if (_passwordController.text != _confirmPasswordController.text) {
+        setState(() => _errorMessage = "Passwords do not match.");
+        return;
+      }
+      if (!_termsAccepted) {
+        setState(() => _errorMessage = "Please accept the Terms of Service to create an account.");
+        return;
+      }
+    }
 
     setState(() {
       _isLoading = true;
@@ -609,6 +723,8 @@ class _AuthScreenState extends State<AuthScreen> {
               controller: _passwordController,
               prefixIcon: Icons.lock_outline_rounded,
               isPassword: true,
+              onChanged: (_) => setState(() {}),
+              onFieldSubmitted: (_) => _isRegistering ? null : _handleSubmit(),
               validator: (val) {
                 if (val == null || val.isEmpty) {
                   return 'Please enter your password';
@@ -619,6 +735,124 @@ class _AuthScreenState extends State<AuthScreen> {
                 return null;
               },
             ),
+
+            // Password Strength Indicator (Signup Mode)
+            if (_isRegistering && _passwordController.text.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Builder(builder: (context) {
+                final strength = _calculatePasswordStrength(_passwordController.text);
+                final color = strength == 1
+                    ? Colors.redAccent
+                    : strength == 2
+                        ? Colors.amberAccent
+                        : const Color(0xFF34D399);
+                final label = strength == 1
+                    ? 'Weak (add numbers & uppercase)'
+                    : strength == 2
+                        ? 'Medium (add special characters)'
+                        : 'Strong password';
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: List.generate(3, (index) {
+                        return Expanded(
+                          child: Container(
+                            height: 3,
+                            margin: EdgeInsets.only(right: index < 2 ? 6 : 0),
+                            decoration: BoxDecoration(
+                              color: index < strength ? color : const Color(0xFF1E212D),
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                          ),
+                        );
+                      }),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      label,
+                      style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w500),
+                    ),
+                  ],
+                );
+              }),
+            ],
+
+            // Forgot Password Link (Login Mode)
+            if (!_isRegistering) ...[
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: _showForgotPasswordDialog,
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 0),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  child: const Text(
+                    'Forgot password?',
+                    style: TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+
+            // Confirm Password Input (Signup Mode)
+            if (_isRegistering) ...[
+              const SizedBox(height: 14),
+              InputField(
+                label: 'Confirm password',
+                placeholder: 'Re-enter your password',
+                controller: _confirmPasswordController,
+                prefixIcon: Icons.lock_reset_rounded,
+                isPassword: true,
+                onFieldSubmitted: (_) => _handleSubmit(),
+                validator: (val) {
+                  if (_isRegistering && (val == null || val.isEmpty)) {
+                    return 'Please confirm your password';
+                  }
+                  if (_isRegistering && val != _passwordController.text) {
+                    return 'Passwords do not match';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 12),
+
+              // Terms & Conditions Checkbox
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  SizedBox(
+                    height: 24,
+                    width: 24,
+                    child: Checkbox(
+                      value: _termsAccepted,
+                      activeColor: AppColors.brandPrimary,
+                      side: const BorderSide(color: Color(0xFF2E3345), width: 1.5),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                      onChanged: (val) => setState(() => _termsAccepted = val ?? false),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => setState(() => _termsAccepted = !_termsAccepted),
+                      child: const Text(
+                        'I agree to the Terms of Service & Privacy Policy',
+                        style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+
             const SizedBox(height: 20),
 
             // Primary CTA Button (48px, subtle indigo gradient, arrow transition)

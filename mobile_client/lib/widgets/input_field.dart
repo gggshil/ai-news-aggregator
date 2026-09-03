@@ -9,6 +9,8 @@ class InputField extends StatefulWidget {
   final bool isPassword;
   final String? Function(String?)? validator;
   final TextInputType keyboardType;
+  final void Function(String)? onFieldSubmitted;
+  final void Function(String)? onChanged;
 
   const InputField({
     super.key,
@@ -19,6 +21,8 @@ class InputField extends StatefulWidget {
     this.isPassword = false,
     this.validator,
     this.keyboardType = TextInputType.text,
+    this.onFieldSubmitted,
+    this.onChanged,
   });
 
   @override
@@ -76,6 +80,8 @@ class _InputFieldState extends State<InputField> {
               controller: widget.controller,
               obscureText: widget.isPassword ? _obscureText : false,
               keyboardType: widget.keyboardType,
+              onFieldSubmitted: widget.onFieldSubmitted,
+              onChanged: widget.onChanged,
               style: const TextStyle(
                 color: AppColors.textPrimary,
                 fontSize: 13.5,

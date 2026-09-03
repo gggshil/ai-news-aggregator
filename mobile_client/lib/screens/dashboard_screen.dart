@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_logo.dart';
 import '../services/api_service.dart';
+import '../services/auth_state.dart';
 
 class DashboardScreen extends StatefulWidget {
   final String email;
@@ -14,6 +15,49 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   bool _isDeleting = false;
+  bool _isTestingConcurrency = false;
+
+  Future<void> _handleTestConcurrency(BuildContext context) async {
+    setState(() => _isTestingConcurrency = true);
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+
+    try {
+      final result = await ApiService.testSimulateConcurrency();
+      if (!mounted) return;
+
+      scaffoldMessenger.showSnackBar(
+        SnackBar(
+          backgroundColor: const Color(0xFF10131D),
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 4),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(color: result['success'] ? const Color(0xFF34D399) : Colors.redAccent),
+          ),
+          content: Row(
+            children: [
+              Icon(
+                result['success'] ? Icons.check_circle_rounded : Icons.error_outline_rounded,
+                color: result['success'] ? const Color(0xFF34D399) : Colors.redAccent,
+                size: 20,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  result['message'] ?? '',
+                  style: const TextStyle(color: Colors.white, fontSize: 13),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isTestingConcurrency = false);
+      }
+    }
+  }
 
   Future<void> _handleDeleteAccount(BuildContext context) async {
     final scaffoldMessenger = ScaffoldMessenger.of(context);
@@ -188,8 +232,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
           IconButton(
             icon: const Icon(Icons.logout_rounded, color: AppColors.textSecondary),
             tooltip: 'Log Out',
-            onPressed: () {
-              Navigator.pop(context);
+            onPressed: () async {
+              final navigator = Navigator.of(context);
+              await AuthManager.instance.logout();
+              if (mounted && navigator.canPop()) {
+                navigator.pop();
+              }
             },
           ),
         ],
@@ -298,6 +346,106 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ),
                         ),
                       ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // Token Management & Security Card
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceCard,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppColors.borderSubtle),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryIndigo.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(Icons.security_rounded, color: AppColors.primaryIndigo, size: 20),
+                      ),
+                      const SizedBox(width: 12),
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Authentication & Token Lifecycle',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            SizedBox(height: 2),
+                            Text(
+                              'JWT Access + Refresh Token Rotation active',
+                              style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: AppColors.surfaceInput,
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: AppColors.borderHairline),
+                          ),
+                          child: const Row(
+                            children: [
+                              Icon(Icons.shield_outlined, color: Color(0xFF34D399), size: 16),
+                              SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  '401 Auto-Refresh & Concurrency Mutex enabled',
+                                  style: TextStyle(color: Color(0xFFCBD5E1), fontSize: 11.5),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: _isTestingConcurrency ? null : () => _handleTestConcurrency(context),
+                      icon: _isTestingConcurrency
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.brandPrimary),
+                            )
+                          : const Icon(Icons.bolt_rounded, size: 18, color: AppColors.brandCyan),
+                      label: Text(
+                        _isTestingConcurrency ? 'Executing 3 Parallel Requests...' : 'Test Concurrency (3 Parallel API Calls)',
+                        style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: Colors.white),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: AppColors.borderMedium),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                      ),
                     ),
                   ),
                 ],

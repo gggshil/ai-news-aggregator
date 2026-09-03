@@ -11,6 +11,7 @@ from .models import (
     DeepseekArticle,
     Digest,
     Subscriber,
+    RefreshToken,
 )
 from .connection import get_session
 
@@ -470,9 +471,110 @@ class Repository:
     def delete_subscriber(self, email: str) -> bool:
         sub = self.get_subscriber_by_email(email)
         if sub:
+            # Revoke all tokens first
+            self.revoke_all_subscriber_tokens(sub.id)
             self.session.delete(sub)
             self.session.commit()
             return True
         return False
+
+    def save_refresh_token(
+        self,
+        jti: str,
+        subscriber_id: str,
+        token_hash: str,
+        expires_at: datetime,
+        user_agent: Optional[str] = None,
+        ip_address: Optional[str] = None,
+    ) -> RefreshToken:
+        token_record = RefreshToken(
+            id=jti,
+            subscriber_id=subscriber_id,
+            token_hash=token_hash,
+            expires_at=expires_at,
+            revoked=False,
+            user_agent=user_agent,
+            ip_address=ip_address,
+        )
+        self.session.add(token_record)
+        self.session.commit()
+        return token_record
+
+    def get_valid_refresh_token(self, token_hash: str) -> Optional[RefreshToken]:
+        now = datetime.utcnow()
+        return (
+            self.session.query(RefreshToken)
+            .filter(
+                RefreshToken.token_hash == token_hash,
+                RefreshToken.revoked == False,
+                RefreshToken.expires_at > now,
+            )
+            .first()
+        )
+
+    def revoke_refresh_token(self, token_hash: str) -> bool:
+        token_record = (
+            self.session.query(RefreshToken)
+            .filter(RefreshToken.token_hash == token_hash)
+            .first()
+        )
+        if token_record:
+            token_record.revoked = True
+            self.session.commit()
+            return True
+        return False
+
+    def revoke_all_subscriber_tokens(self, subscriber_id: str) -> int:
+        count = (
+            self.session.query(RefreshToken)
+            .filter(
+                RefreshToken.subscriber_id == subscriber_id,
+                RefreshToken.revoked == False,
+            )
+            .update({"revoked": True})
+        )
+        self.session.commit()
+        return count
+
+    def rotate_refresh_token(
+        self,
+        old_token_hash: str,
+        new_jti: str,
+        new_token_hash: str,
+        new_expires_at: datetime,
+    ) -> Optional[RefreshToken]:
+        old_record = self.get_valid_refresh_token(old_token_hash)
+        if not old_record:
+            return None
+
+        # Revoke the old token
+        old_record.revoked = True
+
+        # Insert new rotated token
+        new_record = RefreshToken(
+            id=new_jti,
+            subscriber_id=old_record.subscriber_id,
+            token_hash=new_token_hash,
+            expires_at=new_expires_at,
+            revoked=False,
+            user_agent=old_record.user_agent,
+            ip_address=old_record.ip_address,
+        )
+        self.session.add(new_record)
+        self.session.commit()
+        return new_record
+
+    def delete_expired_tokens(self) -> int:
+        now = datetime.utcnow()
+        count = (
+            self.session.query(RefreshToken)
+            .filter(
+                (RefreshToken.expires_at <= now) | (RefreshToken.revoked == True)
+            )
+            .delete()
+        )
+        self.session.commit()
+        return count
+
 
 
