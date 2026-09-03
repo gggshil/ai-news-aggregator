@@ -5,7 +5,6 @@ import 'package:google_sign_in/google_sign_in.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_logo.dart';
-import '../widgets/collapsible_settings.dart';
 import '../widgets/error_alert.dart';
 import '../widgets/google_button.dart';
 import '../widgets/input_field.dart';
@@ -940,13 +939,6 @@ class _AuthScreenState extends State<AuthScreen> {
                 ],
               ),
             ],
-
-            const SizedBox(height: 20),
-
-            // Backend Server Settings (Clean developer control with hairline divider)
-            CollapsibleSettings(
-              serverController: _serverController,
-            ),
           ],
         ),
       ),
