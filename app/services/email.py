@@ -10,8 +10,19 @@ load_dotenv()
 
 logger = logging.getLogger("ai_news_api")
 
-# Resend HTTPS API Configuration
-RESEND_API_KEY = os.getenv("RESEND_API_KEY")
+def get_resend_api_key() -> str | None:
+    """Safely retrieves Resend API key handling casing, whitespace, and quotes."""
+    direct = os.getenv("RESEND_API_KEY")
+    if direct and direct.strip():
+        return direct.strip().strip("'\"")
+    for k, v in os.environ.items():
+        k_upper = k.strip().upper()
+        if "RESEND" in k_upper and ("KEY" in k_upper or "API" in k_upper or "TOKEN" in k_upper):
+            if v and v.strip():
+                return v.strip().strip("'\"")
+    return None
+
+RESEND_API_KEY = get_resend_api_key()
 DEFAULT_EMAIL_FROM = "AI News Aggregator <onboarding@resend.dev>"
 EMAIL_FROM = os.getenv("EMAIL_FROM") or DEFAULT_EMAIL_FROM
 

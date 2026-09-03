@@ -11,7 +11,7 @@ from app.database.repository import Repository
 from app.database.connection import engine, db_session
 from app.database.models import Base, Subscriber
 from app.utils.security import hash_password, verify_password
-from app.services.email import send_welcome_email, send_otp_email
+from app.services.email import send_welcome_email, send_otp_email, get_resend_api_key
 from app.utils.tokens import (
     create_access_token,
     create_refresh_token,
@@ -92,11 +92,13 @@ def _create_auth_session(user: Subscriber, repo: Repository, message: str, reque
 @app.get("/health")
 def health_check():
     """Unauthenticated health check endpoint for Render and uptime monitoring."""
-    resend_configured = bool(os.getenv("RESEND_API_KEY"))
+    key = get_resend_api_key()
+    detected = [k for k in os.environ if any(x in k.upper() for x in ["RESEND", "EMAIL"])]
     return {
         "status": "ok",
         "service": "AI News Aggregator API",
-        "email_provider": "resend" if resend_configured else "resend_not_configured",
+        "email_provider": "resend" if bool(key) else "resend_not_configured",
+        "detected_config_keys": detected,
     }
 
 
