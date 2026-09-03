@@ -187,7 +187,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           ),
         );
-        navigator.pop();
+        // Cut off all tokens, clear session and navigate to login screen
+        await AuthManager.instance.logout();
+        if (mounted) {
+          navigator.pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => const AuthScreen()),
+            (route) => false,
+          );
+        }
       } else {
         scaffoldMessenger.showSnackBar(
           SnackBar(
@@ -249,8 +256,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
             tooltip: 'Log Out',
             onPressed: () async {
               final navigator = Navigator.of(context);
+              final scaffoldMessenger = ScaffoldMessenger.of(context);
               await AuthManager.instance.logout();
               if (mounted) {
+                scaffoldMessenger.showSnackBar(
+                  SnackBar(
+                    backgroundColor: const Color(0xFF10131D),
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      side: const BorderSide(color: Color(0xFF34D399)),
+                    ),
+                    content: const Row(
+                      children: [
+                        Icon(Icons.check_circle_rounded, color: Color(0xFF34D399), size: 20),
+                        SizedBox(width: 10),
+                        Text('Logged out successfully', style: TextStyle(color: Colors.white, fontSize: 13)),
+                      ],
+                    ),
+                  ),
+                );
                 navigator.pushAndRemoveUntil(
                   MaterialPageRoute(builder: (context) => const AuthScreen()),
                   (route) => false,
