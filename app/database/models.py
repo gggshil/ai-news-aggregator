@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import Column, String, DateTime, Text, Boolean, ForeignKey
+from sqlalchemy import Column, String, DateTime, Text, Boolean, ForeignKey, Integer
 from sqlalchemy.orm import declarative_base
 
 Base = declarative_base()
@@ -97,7 +97,7 @@ class Subscriber(Base):
 
     id = Column(String, primary_key=True)
     email = Column(String, unique=True, nullable=False, index=True)
-    password_hash = Column(String, nullable=False)
+    password_hash = Column(String, nullable=True)
     is_active = Column(Boolean, default=True, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 
@@ -113,5 +113,18 @@ class RefreshToken(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     user_agent = Column(String, nullable=True)
     ip_address = Column(String, nullable=True)
+
+
+class EmailOtp(Base):
+    __tablename__ = "email_otps"
+
+    id = Column(String, primary_key=True)  # UUID
+    email = Column(String, nullable=False, index=True)
+    otp_hash = Column(String, nullable=False, index=True)
+    expires_at = Column(DateTime, nullable=False, index=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    verified = Column(Boolean, default=False, nullable=False)
+    attempts = Column(Integer, default=0, nullable=False)
+
 
 

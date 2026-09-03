@@ -363,4 +363,103 @@ The AI News Aggregator Team
     except Exception as e:
         import logging
         logging.getLogger("ai_news_api").warning(f"Could not send welcome email to {recipient_email}: {e}")
-        return False
+        return False
+
+
+def send_otp_email(recipient_email: str, otp_code: str) -> bool:
+    """
+    Dispatches a secure 6-digit verification code OTP email.
+    """
+    try:
+        subject = "Your AI News Aggregator verification code"
+        logo_url = "https://raw.githubusercontent.com/gggshil/ai-news-aggregator/main/mobile_client/assets/images/navbar_logo.png"
+
+        body_text = f"""Hello,
+
+Use the following verification code to sign in to AI News Aggregator:
+
+{otp_code}
+
+This code will expire in 10 minutes.
+
+If you did not request this code, you can safely ignore this email.
+
+Thanks,
+AI News Aggregator
+"""
+
+        body_html = f"""<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI News Aggregator Verification Code</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #08090D; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #E2E8F0;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #08090D; padding: 36px 16px;">
+        <tr>
+            <td align="center">
+                <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 540px; background-color: #10121A; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; overflow: hidden; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);">
+                    
+                    <!-- Header with Logo -->
+                    <tr>
+                        <td align="center" style="padding: 32px 24px 20px; background: linear-gradient(180deg, #141724 0%, #10121A 100%); border-bottom: 1px solid rgba(255, 255, 255, 0.06);">
+                            <img src="{logo_url}" alt="AI News Aggregator Logo" width="58" height="58" style="display: block; margin-bottom: 12px; border-radius: 12px;" />
+                            <h1 style="margin: 0; font-size: 20px; font-weight: 700; color: #FFFFFF; letter-spacing: -0.3px;">AI News Aggregator</h1>
+                            <p style="margin: 4px 0 0; font-size: 12px; color: #818CF8; letter-spacing: 0.5px; text-transform: uppercase; font-weight: 600;">Autonomous Daily AI Intelligence</p>
+                        </td>
+                    </tr>
+
+                    <!-- Body Content -->
+                    <tr>
+                        <td style="padding: 32px 30px; text-align: center;">
+                            <h2 style="margin: 0 0 10px; font-size: 18px; font-weight: 600; color: #F1F5F9;">Your Verification Code</h2>
+                            <p style="margin: 0 0 24px; font-size: 14px; line-height: 1.5; color: #94A3B8;">
+                                Use the 6-digit verification code below to sign in or confirm your daily digest subscription:
+                            </p>
+
+                            <!-- OTP Box -->
+                            <div style="background-color: #0B0D14; border: 1px solid #4F46E5; border-radius: 12px; padding: 22px 16px; margin: 0 auto 24px; display: inline-block; min-width: 260px;">
+                                <span style="font-family: 'SF Mono', Consolas, Menlo, Monaco, monospace; font-size: 36px; font-weight: 700; letter-spacing: 10px; color: #6366F1; display: block; text-align: center;">
+                                    {otp_code}
+                                </span>
+                            </div>
+
+                            <p style="margin: 0 0 16px; font-size: 13px; color: #94A3B8;">
+                                ⏱️ This code will expire in <strong style="color: #F8FAFC;">10 minutes</strong>.
+                            </p>
+                            
+                            <p style="margin: 0 0 4px; font-size: 12px; color: #64748B; line-height: 1.5;">
+                                If you did not request this verification code, you can safely ignore this email.
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td align="center" style="padding: 18px 24px; background-color: #0A0C12; border-top: 1px solid rgba(255, 255, 255, 0.05); font-size: 11px; color: #64748B;">
+                            <p style="margin: 0 0 4px;">Sent by <strong>AI News Aggregator</strong></p>
+                            <p style="margin: 0;">© 2026 AI News Aggregator • Built for Builders & Researchers</p>
+                        </td>
+                    </tr>
+
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
+"""
+
+        send_email(
+            subject=subject,
+            body_text=body_text,
+            body_html=body_html,
+            recipients=[recipient_email]
+        )
+        return True
+    except Exception as e:
+        import logging
+        logging.getLogger("ai_news_api").warning(f"Could not send OTP email to {recipient_email}: {e}")
+        return False
+

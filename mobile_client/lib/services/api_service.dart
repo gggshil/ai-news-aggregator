@@ -29,6 +29,122 @@ class ApiService {
     ApiClient.instance.baseUrl = url;
   }
 
+  /// Sends a 6-digit OTP verification code to the user's email.
+  static Future<AuthResult> sendOtp({
+    required String email,
+    String? customBaseUrl,
+  }) async {
+    final effectiveUrl = (customBaseUrl != null && customBaseUrl.trim().isNotEmpty)
+        ? customBaseUrl.trim()
+        : baseUrl;
+    ApiClient.instance.baseUrl = effectiveUrl;
+
+    final uri = Uri.parse('$effectiveUrl/api/auth');
+
+    try {
+      final response = await http
+          .post(
+            uri,
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'action': 'send_otp',
+              'email': email.trim().toLowerCase(),
+            }),
+          )
+          .timeout(const Duration(seconds: 45));
+
+      final Map<String, dynamic> data = jsonDecode(response.body);
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return AuthResult(
+          success: true,
+          message: data['message'] ?? 'Verification code sent to your email.',
+          email: email,
+        );
+      } else {
+        return AuthResult(
+          success: false,
+          message: data['detail'] ?? data['error'] ?? 'Failed to send verification code.',
+          error: data['detail'] ?? data['error'],
+        );
+      }
+    } catch (e) {
+      return AuthResult(
+        success: false,
+        message: 'Unable to connect to the server. Please check your internet connection.',
+        error: e.toString(),
+      );
+    }
+  }
+
+  /// Verifies the 6-digit OTP, creating an authenticated session on success.
+  static Future<AuthResult> verifyOtp({
+    required String email,
+    required String otp,
+    String? customBaseUrl,
+  }) async {
+    final effectiveUrl = (customBaseUrl != null && customBaseUrl.trim().isNotEmpty)
+        ? customBaseUrl.trim()
+        : baseUrl;
+    ApiClient.instance.baseUrl = effectiveUrl;
+
+    final uri = Uri.parse('$effectiveUrl/api/auth');
+
+    try {
+      final response = await http
+          .post(
+            uri,
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'action': 'verify_otp',
+              'email': email.trim().toLowerCase(),
+              'otp': otp.trim(),
+            }),
+          )
+          .timeout(const Duration(seconds: 45));
+
+      final Map<String, dynamic> data = jsonDecode(response.body);
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final accessToken = data['access_token'] as String?;
+        final refreshToken = data['refresh_token'] as String?;
+        final expiresIn = data['expires_in'] as int? ?? 900;
+        final subscriberId = data['subscriber']?['id'] as String? ?? 'sub_user';
+        final subEmail = data['subscriber']?['email'] ?? email;
+
+        if (accessToken != null && refreshToken != null) {
+          await AuthManager.instance.handleLoginSuccess(
+            accessToken: accessToken,
+            refreshToken: refreshToken,
+            expiresInSeconds: expiresIn,
+            email: subEmail,
+            subscriberId: subscriberId,
+          );
+        }
+
+        return AuthResult(
+          success: true,
+          message: data['message'] ?? 'Verified successfully.',
+          email: subEmail,
+          accessToken: accessToken,
+          refreshToken: refreshToken,
+        );
+      } else {
+        return AuthResult(
+          success: false,
+          message: data['detail'] ?? data['error'] ?? 'That code is incorrect. Please try again.',
+          error: data['detail'] ?? data['error'],
+        );
+      }
+    } catch (e) {
+      return AuthResult(
+        success: false,
+        message: 'Unable to connect to the server. Please check your internet connection.',
+        error: e.toString(),
+      );
+    }
+  }
+
   /// Handles email registration or login, saving issued access & refresh tokens on success.
   static Future<AuthResult> authenticate({
     required String email,

@@ -6,7 +6,7 @@ from app.database.repository import Repository
 from app.database.connection import db_session, engine
 from app.database.models import Base
 from app.utils.security import hash_password, verify_password
-from app.services.email import send_welcome_email
+from app.services.email import send_welcome_email, send_otp_email
 from app.utils.tokens import (
     create_access_token,
     create_refresh_token,
@@ -110,7 +110,73 @@ class handler(BaseHTTPRequestHandler):
 
             repo = Repository()
 
-            # 1. ACTION: REFRESH TOKEN
+            # 1. ACTION: SEND OTP
+            if action == "send_otp":
+                target_email = (email or "").strip().lower()
+                if not target_email or "@" not in target_email or "." not in target_email:
+                    self._send_json(400, {"success": False, "error": "Please enter a valid email address."})
+                    return
+
+                can_send, remaining = repo.check_otp_resend_cooldown(target_email, cooldown_seconds=45)
+                if not can_send:
+                    self._send_json(429, {"success": False, "error": f"Please wait {remaining} seconds before requesting a new code."})
+                    return
+
+                otp_code = f"{secrets.randbelow(900000) + 100000:06d}"
+                repo.create_email_otp(email=target_email, otp_code=otp_code, expires_minutes=10)
+
+                # Send OTP email safely
+                try:
+                    send_otp_email(target_email, otp_code)
+                except Exception as e:
+                    logger.warning(f"Failed to dispatch OTP email: {e}")
+
+                self._send_json(200, {
+                    "success": True,
+                    "message": "Verification code sent to your email.",
+                    "cooldown_seconds": 45,
+                })
+                return
+
+            # 2. ACTION: VERIFY OTP
+            if action == "verify_otp":
+                target_email = (email or "").strip().lower()
+                otp_code = (data.get("otp") or password or "").strip()
+
+                if not target_email or "@" not in target_email or "." not in target_email:
+                    self._send_json(400, {"success": False, "error": "A valid email address is required."})
+                    return
+
+                if not otp_code or len(otp_code) != 6 or not otp_code.isdigit():
+                    self._send_json(400, {"success": False, "error": "Please enter a valid 6-digit verification code."})
+                    return
+
+                valid, msg = repo.verify_email_otp(target_email, otp_code)
+                if not valid:
+                    self._send_json(400, {"success": False, "error": msg})
+                    return
+
+                user, is_new = repo.get_or_create_subscriber_otp(target_email)
+                if is_new:
+                    try:
+                        send_welcome_email(target_email)
+                    except Exception:
+                        pass
+
+                user_agent = self.headers.get("User-Agent")
+                ip_addr = self.client_address[0] if self.client_address else None
+                status_code, resp_payload = _build_session_response(
+                    user=user,
+                    repo=repo,
+                    message="Verified successfully.",
+                    status_code=200,
+                    user_agent=user_agent,
+                    ip_address=ip_addr,
+                )
+                self._send_json(status_code, resp_payload)
+                return
+
+            # 3. ACTION: REFRESH TOKEN
             if action == "refresh":
                 raw_refresh_token = data.get("refresh_token") or ""
                 if not raw_refresh_token:

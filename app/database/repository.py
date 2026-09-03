@@ -1,4 +1,5 @@
 import uuid
+import secrets
 from datetime import datetime, timedelta, timezone
 from typing import List, Optional, Dict, Any
 from sqlalchemy.orm import Session
@@ -12,8 +13,10 @@ from .models import (
     Digest,
     Subscriber,
     RefreshToken,
+    EmailOtp,
 )
 from .connection import get_session
+from app.utils.tokens import hash_token
 
 
 class Repository:
@@ -575,6 +578,129 @@ class Repository:
         )
         self.session.commit()
         return count
+
+    # -------------------------------------------------------------------------
+    # EMAIL OTP AUTHENTICATION REPOSITORY METHODS
+    # -------------------------------------------------------------------------
+
+    def check_otp_resend_cooldown(self, email: str, cooldown_seconds: int = 60) -> tuple[bool, int]:
+        """Checks if a new OTP can be requested or if cooldown is active."""
+        email_clean = email.strip().lower()
+        latest = (
+            self.session.query(EmailOtp)
+            .filter_by(email=email_clean)
+            .order_by(EmailOtp.created_at.desc())
+            .first()
+        )
+        if not latest:
+            return True, 0
+
+        elapsed = (datetime.utcnow() - latest.created_at).total_seconds()
+        if elapsed < cooldown_seconds:
+            remaining = int(cooldown_seconds - elapsed)
+            return False, remaining
+        return True, 0
+
+    def create_email_otp(self, email: str, otp_code: str, expires_minutes: int = 10) -> EmailOtp:
+        """Invalidates older active OTPs for this email and creates a new hashed OTP."""
+        email_clean = email.strip().lower()
+        now = datetime.utcnow()
+
+        # Invalidate previous unverified OTPs
+        self.session.query(EmailOtp).filter(
+            EmailOtp.email == email_clean,
+            EmailOtp.verified == False,
+        ).update({"verified": True})
+
+        otp_record = EmailOtp(
+            id=str(uuid.uuid4()),
+            email=email_clean,
+            otp_hash=hash_token(otp_code),
+            expires_at=now + timedelta(minutes=expires_minutes),
+            created_at=now,
+            verified=False,
+            attempts=0,
+        )
+        self.session.add(otp_record)
+        self.session.commit()
+        return otp_record
+
+    def get_active_email_otp(self, email: str) -> Optional[EmailOtp]:
+        """Fetches the latest active (unverified and non-expired) OTP for the email."""
+        email_clean = email.strip().lower()
+        now = datetime.utcnow()
+        return (
+            self.session.query(EmailOtp)
+            .filter(
+                EmailOtp.email == email_clean,
+                EmailOtp.verified == False,
+                EmailOtp.expires_at > now,
+            )
+            .order_by(EmailOtp.created_at.desc())
+            .first()
+        )
+
+    def verify_email_otp(self, email: str, otp_code: str) -> tuple[bool, str]:
+        """
+        Validates the 6-digit OTP:
+        - Checks existence and expiration
+        - Enforces max 5 attempts limit
+        - Constant-time hash check
+        - Marks OTP verified (single-use)
+        """
+        email_clean = email.strip().lower()
+        otp_clean = otp_code.strip()
+        now = datetime.utcnow()
+
+        record = (
+            self.session.query(EmailOtp)
+            .filter(
+                EmailOtp.email == email_clean,
+                EmailOtp.verified == False,
+            )
+            .order_by(EmailOtp.created_at.desc())
+            .first()
+        )
+
+        if not record:
+            return False, "No active verification code found. Please request a new code."
+
+        if now > record.expires_at:
+            return False, "This verification code has expired. Please request a new code."
+
+        if record.attempts >= 5:
+            record.verified = True
+            self.session.commit()
+            return False, "Too many incorrect attempts. Please request a new code."
+
+        if hash_token(otp_clean) != record.otp_hash:
+            record.attempts += 1
+            self.session.commit()
+            return False, "That code is incorrect. Please try again."
+
+        # Valid OTP - mark verified (single-use)
+        record.verified = True
+        self.session.commit()
+        return True, "Verified successfully."
+
+    def get_or_create_subscriber_otp(self, email: str) -> tuple[Subscriber, bool]:
+        """Returns existing subscriber or creates a new one for passwordless OTP auth."""
+        email_clean = email.strip().lower()
+        sub = self.get_subscriber_by_email(email_clean)
+        is_new = False
+        if not sub:
+            sub = Subscriber(
+                id=str(uuid.uuid4()),
+                email=email_clean,
+                password_hash="OTP_VERIFIED_" + secrets.token_hex(16),
+                is_active=True,
+                created_at=datetime.utcnow(),
+            )
+            self.session.add(sub)
+            self.session.commit()
+            is_new = True
+        return sub, is_new
+
 
 
 

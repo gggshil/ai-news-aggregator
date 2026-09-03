@@ -11,7 +11,7 @@ from app.database.repository import Repository
 from app.database.connection import engine, db_session
 from app.database.models import Base, Subscriber
 from app.utils.security import hash_password, verify_password
-from app.services.email import send_welcome_email
+from app.services.email import send_welcome_email, send_otp_email
 from app.utils.tokens import (
     create_access_token,
     create_refresh_token,
@@ -46,7 +46,7 @@ allowed_origins = [o.strip() for o in raw_origins.split(",") if o.strip()]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allowed_origins if allowed_origins != ["*"] else ["*"],
+    allow_origins=allowed_origins if "*" not in allowed_origins else ["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -54,9 +54,10 @@ app.add_middleware(
 
 
 class AuthRequest(BaseModel):
-    action: str = "register"  # "register", "login", "google_signin", "refresh", "logout", "me", "delete"
+    action: str = "send_otp"  # "send_otp", "verify_otp", "google_signin", "refresh", "logout", "me", "delete"
     email: Optional[str] = None
     password: Optional[str] = None
+    otp: Optional[str] = None
     refresh_token: Optional[str] = None
 
 
@@ -100,6 +101,56 @@ def authenticate(payload: AuthRequest, request: Request, background_tasks: Backg
     repo = Repository()
 
     try:
+        # 1. ACTION: SEND OTP
+        if payload.action == "send_otp":
+            email = (payload.email or "").strip().lower()
+            if not email or "@" not in email or "." not in email:
+                raise HTTPException(status_code=400, detail="Please enter a valid email address.")
+
+            can_send, remaining = repo.check_otp_resend_cooldown(email, cooldown_seconds=45)
+            if not can_send:
+                raise HTTPException(status_code=429, detail=f"Please wait {remaining} seconds before requesting a new code.")
+
+            # Generate 6-digit cryptographically secure numeric OTP
+            otp_code = f"{secrets.randbelow(900000) + 100000:06d}"
+            repo.create_email_otp(email=email, otp_code=otp_code, expires_minutes=10)
+
+            # Send OTP email in background
+            background_tasks.add_task(send_otp_email, email, otp_code)
+            logger.info(f"Verification OTP code dispatched for {email}")
+
+            return {
+                "success": True,
+                "message": "Verification code sent to your email.",
+                "cooldown_seconds": 45,
+            }
+
+        # 2. ACTION: VERIFY OTP
+        if payload.action == "verify_otp":
+            email = (payload.email or "").strip().lower()
+            otp_code = (payload.otp or payload.password or "").strip()
+
+            if not email or "@" not in email or "." not in email:
+                raise HTTPException(status_code=400, detail="A valid email address is required.")
+
+            if not otp_code or len(otp_code) != 6 or not otp_code.isdigit():
+                raise HTTPException(status_code=400, detail="Please enter a valid 6-digit verification code.")
+
+            valid, message = repo.verify_email_otp(email, otp_code)
+            if not valid:
+                raise HTTPException(status_code=400, detail=message)
+
+            user, is_new = repo.get_or_create_subscriber_otp(email)
+            if is_new:
+                background_tasks.add_task(send_welcome_email, email)
+
+            return _create_auth_session(
+                user=user,
+                repo=repo,
+                message="Verified successfully.",
+                request=request,
+            )
+
         # 1. ACTION: REFRESH TOKEN
         if payload.action == "refresh":
             raw_token = payload.refresh_token or ""
