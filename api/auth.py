@@ -135,7 +135,7 @@ class handler(BaseHTTPRequestHandler):
                 if not dispatched:
                     self._send_json(500, {
                         "success": False,
-                        "error": "Email delivery failed. Render free tier blocks outbound SMTP ports (465/587). Please add RESEND_API_KEY in Render settings or run the local backend server.",
+                        "error": "Unable to send verification code. Please try again or check server email configuration.",
                     })
                     return
 

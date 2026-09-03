@@ -89,12 +89,16 @@ class TestOtpAuth(unittest.TestCase):
         Base.metadata.create_all(engine)
 
     def setUp(self):
+        from unittest.mock import patch
+        self.email_patch = patch("api.auth.send_otp_email", return_value=True)
+        self.email_patch.start()
         self.session = SessionLocal()
         self.repo = Repository(session=self.session)
         self.email = "otp_tester@deepmind.com"
         self._cleanup()
 
     def tearDown(self):
+        self.email_patch.stop()
         self._cleanup()
         self.session.close()
 

@@ -1,25 +1,67 @@
 import os
-import smtplib
-import html
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-from dotenv import load_dotenv
-load_dotenv()
-
-
 import json
+import logging
 import urllib.request
 import urllib.error
+import ssl
+from dotenv import load_dotenv
 
-MY_EMAIL = os.getenv("MY_EMAIL")
-APP_PASSWORD = os.getenv("APP_PASSWORD")
+load_dotenv()
+
+logger = logging.getLogger("ai_news_api")
+
+# Resend HTTPS API Configuration
+RESEND_API_KEY = os.getenv("RESEND_API_KEY")
+DEFAULT_EMAIL_FROM = "AI News Aggregator <onboarding@resend.dev>"
+EMAIL_FROM = os.getenv("EMAIL_FROM") or DEFAULT_EMAIL_FROM
+
+# Try importing official Resend SDK if available
+try:
+    import resend
+    if RESEND_API_KEY:
+        resend.api_key = RESEND_API_KEY
+    _HAS_RESEND_SDK = True
+except ImportError:
+    _HAS_RESEND_SDK = False
 
 
-def _send_via_resend(api_key: str, subject: str, body_text: str, body_html: str, recipients: list) -> bool:
-    """Sends email via Resend HTTP REST API over standard HTTPS port 443."""
+def _send_via_resend(api_key: str, from_addr: str, subject: str, body_text: str, body_html: str = None, recipients: list = None) -> bool:
+    """
+    Sends transactional email via Resend HTTPS API (Port 443).
+    Bypasses cloud provider SMTP port blocking (ports 25, 465, 587).
+    """
+    if not api_key:
+        logger.error("Resend API dispatch failed: RESEND_API_KEY is not configured in environment variables.")
+        return False
+
+    if not recipients:
+        logger.error("Resend API dispatch failed: No recipient emails provided.")
+        return False
+
+    # 1. Attempt dispatch using official Resend Python SDK if installed
+    if _HAS_RESEND_SDK:
+        try:
+            params: dict = {
+                "from": from_addr,
+                "to": recipients,
+                "subject": subject,
+                "text": body_text,
+            }
+            if body_html:
+                params["html"] = body_html
+
+            resend.api_key = api_key
+            response = resend.Emails.send(params)
+            if response and (getattr(response, "id", None) or isinstance(response, dict)):
+                logger.info(f"Email successfully delivered via Resend SDK to {len(recipients)} recipient(s).")
+                return True
+        except Exception as sdk_err:
+            logger.warning(f"Resend SDK dispatch exception (falling back to HTTPS REST client): {sdk_err}")
+
+    # 2. Resilient HTTPS REST Client over standard Port 443
     url = "https://api.resend.com/emails"
     payload = {
-        "from": "AI News Aggregator <onboarding@resend.dev>",
+        "from": from_addr,
         "to": recipients,
         "subject": subject,
         "text": body_text,
@@ -27,102 +69,76 @@ def _send_via_resend(api_key: str, subject: str, body_text: str, body_html: str,
     if body_html:
         payload["html"] = body_html
 
+    req_data = json.dumps(payload).encode("utf-8")
     req = urllib.request.Request(
         url,
-        data=json.dumps(payload).encode("utf-8"),
+        data=req_data,
         headers={
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json",
-            "User-Agent": "AINewsAggregator/1.0",
+            "User-Agent": "AINewsAggregator/2.0",
         },
         method="POST",
     )
-    with urllib.request.urlopen(req, timeout=15) as res:
-        return res.status in (200, 201)
-
-
-def _send_via_brevo(api_key: str, sender_email: str, subject: str, body_text: str, body_html: str, recipients: list) -> bool:
-    """Sends email via Brevo HTTP REST API over standard HTTPS port 443."""
-    url = "https://api.brevo.com/v3/smtp/email"
-    payload = {
-        "sender": {"name": "AI News Aggregator", "email": sender_email},
-        "to": [{"email": r} for r in recipients],
-        "subject": subject,
-        "textContent": body_text,
-    }
-    if body_html:
-        payload["htmlContent"] = body_html
-
-    req = urllib.request.Request(
-        url,
-        data=json.dumps(payload).encode("utf-8"),
-        headers={
-            "api-key": api_key,
-            "Content-Type": "application/json",
-            "User-Agent": "AINewsAggregator/1.0",
-        },
-        method="POST",
-    )
-    with urllib.request.urlopen(req, timeout=15) as res:
-        return res.status in (200, 201)
-
-
-def send_email(subject: str, body_text: str, body_html: str = None, recipients: list = None):
-    if recipients is None:
-        recipients = [os.getenv("MY_EMAIL")]
-    recipients = [r for r in recipients if r is not None]
-    if not recipients:
-        raise ValueError("No valid recipients provided")
-
-    # 1. Check for Resend API key (HTTPS port 443 - zero SMTP port blockage)
-    resend_key = os.getenv("RESEND_API_KEY")
-    if resend_key:
-        try:
-            return _send_via_resend(resend_key, subject, body_text, body_html, recipients)
-        except Exception as e:
-            import logging
-            logging.getLogger("ai_news_api").warning(f"Resend API send failed: {e}")
-
-    # 2. Check for Brevo API key (HTTPS port 443)
-    brevo_key = os.getenv("BREVO_API_KEY")
-    if brevo_key:
-        try:
-            sender = os.getenv("MY_EMAIL") or "fakejishil@gmail.com"
-            return _send_via_brevo(brevo_key, sender, subject, body_text, body_html, recipients)
-        except Exception as e:
-            import logging
-            logging.getLogger("ai_news_api").warning(f"Brevo API send failed: {e}")
-
-    # 3. Standard SMTP with port 465 SSL and fallback to port 587 STARTTLS
-    my_email = os.getenv("MY_EMAIL") or MY_EMAIL
-    app_password = os.getenv("APP_PASSWORD") or APP_PASSWORD
-    if not my_email:
-        raise ValueError("MY_EMAIL environment variable is not set")
-    if not app_password:
-        raise ValueError("APP_PASSWORD environment variable is not set")
-
-    msg = MIMEMultipart("alternative")
-    msg["Subject"] = subject
-    msg["From"] = my_email
-    msg["To"] = ", ".join(recipients)
-    msg.attach(MIMEText(body_text, "plain"))
-    if body_html:
-        msg.attach(MIMEText(body_html, "html"))
 
     try:
-        with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=10) as smtp:
-            smtp.login(my_email, app_password)
-            smtp.sendmail(my_email, recipients, msg.as_string())
-            return True
-    except Exception as ssl_err:
-        try:
-            with smtplib.SMTP("smtp.gmail.com", 587, timeout=10) as smtp:
-                smtp.starttls()
-                smtp.login(my_email, app_password)
-                smtp.sendmail(my_email, recipients, msg.as_string())
+        ctx = ssl.create_default_context()
+        with urllib.request.urlopen(req, context=ctx, timeout=15) as res:
+            status = res.status
+            if status in (200, 201):
+                logger.info(f"Email successfully dispatched via Resend HTTPS API to {len(recipients)} recipient(s).")
                 return True
-        except Exception as starttls_err:
-            raise RuntimeError(f"SMTP delivery failed (SSL port 465: {ssl_err}; STARTTLS port 587: {starttls_err})")
+            else:
+                logger.error(f"Resend HTTPS API returned unexpected HTTP status: {status}")
+                return False
+    except urllib.error.HTTPError as http_err:
+        err_body = ""
+        try:
+            err_body = http_err.read().decode("utf-8", errors="replace")
+        except Exception:
+            pass
+        logger.error(f"Resend HTTPS API HTTP error {http_err.code}: {err_body}")
+        return False
+    except urllib.error.URLError as url_err:
+        logger.error(f"Resend HTTPS API network/connection error: {url_err.reason}")
+        return False
+    except Exception as exc:
+        logger.error(f"Unexpected error during Resend email dispatch: {exc}")
+        return False
+
+
+def send_email(subject: str, body_text: str, body_html: str = None, recipients: list = None) -> bool:
+    """
+    Centralized email delivery function using Resend HTTPS API.
+    Zero SMTP dependencies.
+    """
+    api_key = os.getenv("RESEND_API_KEY") or RESEND_API_KEY
+    if not api_key:
+        raise ValueError("RESEND_API_KEY environment variable is not set. Please configure RESEND_API_KEY in Render or .env.")
+
+    from_addr = os.getenv("EMAIL_FROM") or EMAIL_FROM or DEFAULT_EMAIL_FROM
+
+    if recipients is None:
+        default_recipient = os.getenv("MY_EMAIL")
+        if not default_recipient:
+            raise ValueError("No recipient specified and MY_EMAIL is not set.")
+        recipients = [default_recipient]
+
+    recipients = [r.strip().lower() for r in recipients if r and isinstance(r, str)]
+    if not recipients:
+        raise ValueError("No valid recipient email addresses provided.")
+
+    success = _send_via_resend(
+        api_key=api_key,
+        from_addr=from_addr,
+        subject=subject,
+        body_text=body_text,
+        body_html=body_html,
+        recipients=recipients,
+    )
+    if not success:
+        raise RuntimeError("Failed to deliver email through Resend HTTPS API. Please check server logs and RESEND_API_KEY.")
+    return True
 
 
 
@@ -451,8 +467,17 @@ The AI News Aggregator Team
 
 def send_otp_email(recipient_email: str, otp_code: str) -> bool:
     """
-    Dispatches a secure 6-digit verification code OTP email.
+    Dispatches a secure 6-digit verification code OTP email via Resend HTTPS API.
+    Never logs OTP code or API secrets.
     """
+    if not recipient_email or "@" not in recipient_email:
+        logger.error("Invalid recipient email provided to send_otp_email.")
+        return False
+
+    api_key = os.getenv("RESEND_API_KEY") or RESEND_API_KEY
+    if not api_key:
+        logger.error("Cannot dispatch OTP email: RESEND_API_KEY is not configured.")
+        return False
     try:
         subject = "Your AI News Aggregator verification code"
         logo_url = "https://raw.githubusercontent.com/gggshil/ai-news-aggregator/main/mobile_client/assets/images/navbar_logo.png"

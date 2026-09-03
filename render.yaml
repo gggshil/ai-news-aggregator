@@ -19,9 +19,9 @@ services:
         sync: false
       - key: OPENAI_API_KEY
         sync: false
-      - key: MY_EMAIL
+      - key: RESEND_API_KEY
         sync: false
-      - key: APP_PASSWORD
-        sync: false
+      - key: EMAIL_FROM
+        value: "AI News Aggregator <onboarding@resend.dev>"
       - key: ALLOWED_ORIGINS
         value: "*"

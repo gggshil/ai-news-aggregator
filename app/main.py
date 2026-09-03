@@ -92,7 +92,12 @@ def _create_auth_session(user: Subscriber, repo: Repository, message: str, reque
 @app.get("/health")
 def health_check():
     """Unauthenticated health check endpoint for Render and uptime monitoring."""
-    return {"status": "ok", "service": "AI News Aggregator API"}
+    resend_configured = bool(os.getenv("RESEND_API_KEY"))
+    return {
+        "status": "ok",
+        "service": "AI News Aggregator API",
+        "email_provider": "resend" if resend_configured else "resend_not_configured",
+    }
 
 
 @app.post("/api/auth")
@@ -115,16 +120,16 @@ def authenticate(payload: AuthRequest, request: Request, background_tasks: Backg
             otp_code = f"{secrets.randbelow(900000) + 100000:06d}"
             repo.create_email_otp(email=email, otp_code=otp_code, expires_minutes=10)
 
-            # Attempt immediate email dispatch
+            # Attempt immediate email dispatch via Resend HTTPS API
             dispatched = send_otp_email(email, otp_code)
             if not dispatched:
-                logger.error(f"Failed to dispatch OTP email to {email}")
+                logger.error(f"Failed to dispatch OTP verification email for {email} via Resend.")
                 raise HTTPException(
                     status_code=500,
-                    detail="Email delivery failed. Render free tier blocks outbound SMTP ports (465/587). Please add RESEND_API_KEY in Render settings or run the local backend server.",
+                    detail="Unable to send verification code. Please try again or check server email configuration.",
                 )
 
-            logger.info(f"Verification OTP code dispatched for {email}")
+            logger.info(f"Verification OTP code dispatched successfully for {email}")
 
             return {
                 "success": True,
