@@ -7,40 +7,123 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
+import json
+import urllib.request
+import urllib.error
+
 MY_EMAIL = os.getenv("MY_EMAIL")
 APP_PASSWORD = os.getenv("APP_PASSWORD")
 
 
+def _send_via_resend(api_key: str, subject: str, body_text: str, body_html: str, recipients: list) -> bool:
+    """Sends email via Resend HTTP REST API over standard HTTPS port 443."""
+    url = "https://api.resend.com/emails"
+    payload = {
+        "from": "AI News Aggregator <onboarding@resend.dev>",
+        "to": recipients,
+        "subject": subject,
+        "text": body_text,
+    }
+    if body_html:
+        payload["html"] = body_html
+
+    req = urllib.request.Request(
+        url,
+        data=json.dumps(payload).encode("utf-8"),
+        headers={
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+            "User-Agent": "AINewsAggregator/1.0",
+        },
+        method="POST",
+    )
+    with urllib.request.urlopen(req, timeout=15) as res:
+        return res.status in (200, 201)
+
+
+def _send_via_brevo(api_key: str, sender_email: str, subject: str, body_text: str, body_html: str, recipients: list) -> bool:
+    """Sends email via Brevo HTTP REST API over standard HTTPS port 443."""
+    url = "https://api.brevo.com/v3/smtp/email"
+    payload = {
+        "sender": {"name": "AI News Aggregator", "email": sender_email},
+        "to": [{"email": r} for r in recipients],
+        "subject": subject,
+        "textContent": body_text,
+    }
+    if body_html:
+        payload["htmlContent"] = body_html
+
+    req = urllib.request.Request(
+        url,
+        data=json.dumps(payload).encode("utf-8"),
+        headers={
+            "api-key": api_key,
+            "Content-Type": "application/json",
+            "User-Agent": "AINewsAggregator/1.0",
+        },
+        method="POST",
+    )
+    with urllib.request.urlopen(req, timeout=15) as res:
+        return res.status in (200, 201)
+
+
 def send_email(subject: str, body_text: str, body_html: str = None, recipients: list = None):
     if recipients is None:
-        if not MY_EMAIL:
-            raise ValueError("MY_EMAIL environment variable is not set")
-        recipients = [MY_EMAIL]
-    
+        recipients = [os.getenv("MY_EMAIL")]
     recipients = [r for r in recipients if r is not None]
     if not recipients:
         raise ValueError("No valid recipients provided")
-    
-    if not MY_EMAIL:
+
+    # 1. Check for Resend API key (HTTPS port 443 - zero SMTP port blockage)
+    resend_key = os.getenv("RESEND_API_KEY")
+    if resend_key:
+        try:
+            return _send_via_resend(resend_key, subject, body_text, body_html, recipients)
+        except Exception as e:
+            import logging
+            logging.getLogger("ai_news_api").warning(f"Resend API send failed: {e}")
+
+    # 2. Check for Brevo API key (HTTPS port 443)
+    brevo_key = os.getenv("BREVO_API_KEY")
+    if brevo_key:
+        try:
+            sender = os.getenv("MY_EMAIL") or "fakejishil@gmail.com"
+            return _send_via_brevo(brevo_key, sender, subject, body_text, body_html, recipients)
+        except Exception as e:
+            import logging
+            logging.getLogger("ai_news_api").warning(f"Brevo API send failed: {e}")
+
+    # 3. Standard SMTP with port 465 SSL and fallback to port 587 STARTTLS
+    my_email = os.getenv("MY_EMAIL") or MY_EMAIL
+    app_password = os.getenv("APP_PASSWORD") or APP_PASSWORD
+    if not my_email:
         raise ValueError("MY_EMAIL environment variable is not set")
-    if not APP_PASSWORD:
+    if not app_password:
         raise ValueError("APP_PASSWORD environment variable is not set")
-    
+
     msg = MIMEMultipart("alternative")
     msg["Subject"] = subject
-    msg["From"] = MY_EMAIL
+    msg["From"] = my_email
     msg["To"] = ", ".join(recipients)
-    
-    part1 = MIMEText(body_text, "plain")
-    msg.attach(part1)
-    
+    msg.attach(MIMEText(body_text, "plain"))
     if body_html:
-        part2 = MIMEText(body_html, "html")
-        msg.attach(part2)
-    
-    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
-        smtp.login(MY_EMAIL, APP_PASSWORD)
-        smtp.sendmail(MY_EMAIL, recipients, msg.as_string())
+        msg.attach(MIMEText(body_html, "html"))
+
+    try:
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=10) as smtp:
+            smtp.login(my_email, app_password)
+            smtp.sendmail(my_email, recipients, msg.as_string())
+            return True
+    except Exception as ssl_err:
+        try:
+            with smtplib.SMTP("smtp.gmail.com", 587, timeout=10) as smtp:
+                smtp.starttls()
+                smtp.login(my_email, app_password)
+                smtp.sendmail(my_email, recipients, msg.as_string())
+                return True
+        except Exception as starttls_err:
+            raise RuntimeError(f"SMTP delivery failed (SSL port 465: {ssl_err}; STARTTLS port 587: {starttls_err})")
+
 
 
 def markdown_to_html(markdown_text: str) -> str:

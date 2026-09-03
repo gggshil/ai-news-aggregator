@@ -126,10 +126,18 @@ class handler(BaseHTTPRequestHandler):
                 repo.create_email_otp(email=target_email, otp_code=otp_code, expires_minutes=10)
 
                 # Send OTP email safely
+                dispatched = False
                 try:
-                    send_otp_email(target_email, otp_code)
+                    dispatched = send_otp_email(target_email, otp_code)
                 except Exception as e:
                     logger.warning(f"Failed to dispatch OTP email: {e}")
+
+                if not dispatched:
+                    self._send_json(500, {
+                        "success": False,
+                        "error": "Email delivery failed. Render free tier blocks outbound SMTP ports (465/587). Please add RESEND_API_KEY in Render settings or run the local backend server.",
+                    })
+                    return
 
                 self._send_json(200, {
                     "success": True,

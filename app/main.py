@@ -115,8 +115,15 @@ def authenticate(payload: AuthRequest, request: Request, background_tasks: Backg
             otp_code = f"{secrets.randbelow(900000) + 100000:06d}"
             repo.create_email_otp(email=email, otp_code=otp_code, expires_minutes=10)
 
-            # Send OTP email in background
-            background_tasks.add_task(send_otp_email, email, otp_code)
+            # Attempt immediate email dispatch
+            dispatched = send_otp_email(email, otp_code)
+            if not dispatched:
+                logger.error(f"Failed to dispatch OTP email to {email}")
+                raise HTTPException(
+                    status_code=500,
+                    detail="Email delivery failed. Render free tier blocks outbound SMTP ports (465/587). Please add RESEND_API_KEY in Render settings or run the local backend server.",
+                )
+
             logger.info(f"Verification OTP code dispatched for {email}")
 
             return {
