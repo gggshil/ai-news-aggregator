@@ -3,6 +3,7 @@ import '../theme/app_theme.dart';
 import '../widgets/app_logo.dart';
 import '../services/api_service.dart';
 import '../services/auth_state.dart';
+import 'auth_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   final String email;
@@ -227,6 +228,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
+          tooltip: 'Back to Login',
+          onPressed: () async {
+            final navigator = Navigator.of(context);
+            await AuthManager.instance.logout();
+            if (mounted) {
+              navigator.pushAndRemoveUntil(
+                MaterialPageRoute(builder: (context) => const AuthScreen()),
+                (route) => false,
+              );
+            }
+          },
+        ),
         title: const AppLogo(size: 24, showBadge: true),
         actions: [
           IconButton(
@@ -235,8 +250,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
             onPressed: () async {
               final navigator = Navigator.of(context);
               await AuthManager.instance.logout();
-              if (mounted && navigator.canPop()) {
-                navigator.pop();
+              if (mounted) {
+                navigator.pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (context) => const AuthScreen()),
+                  (route) => false,
+                );
               }
             },
           ),
